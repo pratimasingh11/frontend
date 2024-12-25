@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'welcome_page.dart';
 import 'category_page.dart';
 // import 'cuisine_menu.dart'; // Import the generic cuisine menu page

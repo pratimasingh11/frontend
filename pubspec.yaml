@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: eazymeal
+=======
+name: my_flutter_app
+>>>>>>> 9806c179cab1d37515e25b536070949300736971
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -45,7 +49,11 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
+<<<<<<< HEAD
   flutter_lints: ^5.0.0
+=======
+  flutter_lints: ^4.0.0
+>>>>>>> 9806c179cab1d37515e25b536070949300736971
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -59,6 +67,7 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+<<<<<<< HEAD
 
 
   assets:
@@ -86,6 +95,11 @@ flutter:
     - assets/paneer chilly.jpg
     - assets/paneer tikka.jpg
 
+=======
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+>>>>>>> 9806c179cab1d37515e25b536070949300736971
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -112,3 +126,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+<<<<<<< HEAD
+=======
+
+
+  # Add this to reference the image
+  assets:
+    - assets/login1.png
+  
+    - assets/login1.png
+>>>>>>> 9806c179cab1d37515e25b536070949300736971

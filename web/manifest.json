@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "eazymeal",
     "short_name": "eazymeal",
+=======
+    "name": "my_flutter_app",
+    "short_name": "my_flutter_app",
+>>>>>>> 9806c179cab1d37515e25b536070949300736971
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

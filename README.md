@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # eazymeal
+=======
+# my_flutter_app
+>>>>>>> 9806c179cab1d37515e25b536070949300736971
 
 A new Flutter project.
 
