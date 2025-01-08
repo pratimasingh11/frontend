@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart';
-import 'signup_page.dart';
-import 'checkout_page.dart';
-import 'scategories_page.dart';
-import 'sproduct_page.dart';
+import 's_login_page.dart'; 
+import 's_signup_page.dart'; 
+import 'SDashboard.dart';
 
 void main() {
-  runApp(MyApp(initialPage: LoginScreen())); // Change this to the desired page
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final Widget initialPage;
-
-  MyApp({required this.initialPage});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Navigation Example',
+      title: 'Easy Meals',
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: initialPage, // Set the initial page dynamically
+      initialRoute: '/s_signup_page',  // Start with the signup page
+      routes: {
+        '/s_signup_page': (context) => s_SignUpScreen(),
+        '/s_login_page': (context) => s_LoginScreen (),  // Add other routes here
+       // '/SDashboard': (context) => SellersDashboard (),
+      },
     );
   }
 }
+

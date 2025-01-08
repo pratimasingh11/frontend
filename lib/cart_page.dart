@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CartPage extends StatelessWidget {
+  // The list is not `const`, since it contains dynamic data
   final List<Map<String, dynamic>> recommendedItems = [
     {
       "name": "Cheese Pizza",
@@ -28,18 +29,21 @@ class CartPage extends StatelessWidget {
     },
   ];
 
+  // Removed the `const` from the constructor
+  CartPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.yellow,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           "My Cart",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -66,11 +70,11 @@ class CartPage extends StatelessWidget {
                         width: 60,
                         fit: BoxFit.cover,
                       ),
-                      title: Text(
+                      title: const Text(
                         "Chicken Biryani",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(
+                      subtitle: const Text(
                         "Rs. 455",
                         style: TextStyle(
                             color: Colors.black, fontWeight: FontWeight.bold),
@@ -80,13 +84,13 @@ class CartPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.add_circle_outline, color: Colors.black),
+                            icon: const Icon(Icons.add_circle_outline, color: Colors.black),
                             onPressed: () {
                               // Add logic to increment the item quantity
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.black),
+                            icon: const Icon(Icons.delete, color: Colors.black),
                             onPressed: () {
                               // Add logic to remove the item from the cart
                             },
@@ -100,13 +104,13 @@ class CartPage extends StatelessWidget {
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.yellow,
-                          minimumSize: Size(double.infinity, 60),
+                          minimumSize: const Size(double.infinity, 60),
                         ),
                         onPressed: () {
                           // Add logic to add more items to the cart
                         },
-                        icon: Icon(Icons.add, color: Colors.black),
-                        label: Text(
+                        icon: const Icon(Icons.add, color: Colors.black),
+                        label: const Text(
                           "Add more items",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
@@ -116,13 +120,13 @@ class CartPage extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // "You May Also Like" Section
-              Text(
+              const Text(
                 "You May Also Like!",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               // Recommended items list
               SizedBox(
                 height: 220,
@@ -132,11 +136,11 @@ class CartPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final item = recommendedItems[index];
                     return Card(
-                      margin: EdgeInsets.only(right: 16),
+                      margin: const EdgeInsets.only(right: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Container(
+                      child: SizedBox(
                         width: 160,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,12 +154,12 @@ class CartPage extends StatelessWidget {
                                 fit: BoxFit.cover,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Text(
                                 item["name"],
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
                             Padding(
@@ -165,17 +169,17 @@ class CartPage extends StatelessWidget {
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.star,
                                         color: Colors.yellow,
                                         size: 16,
                                       ),
-                                      SizedBox(width: 4),
+                                      const SizedBox(width: 4),
                                       Text("${item["rating"]}"),
                                     ],
                                   ),
                                   IconButton(
-                                    icon: Icon(Icons.add_circle_outline, color: Colors.black),
+                                    icon: const Icon(Icons.add_circle_outline, color: Colors.black),
                                     onPressed: () {
                                       // Add logic to add this item to the cart
                                     },
@@ -187,7 +191,7 @@ class CartPage extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Text(
                                 "Rs. ${item["price"]}",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -200,11 +204,11 @@ class CartPage extends StatelessWidget {
                   },
                 ),
               ),
-              SizedBox(height: 20),
-              Divider(),
-              SizedBox(height: 10),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 10),
               // Subtotal and Confirm Button
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -217,20 +221,20 @@ class CartPage extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   // Add logic for confirming the delivery details
                 },
-                child: Center(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow,
+                  minimumSize: const Size(double.infinity, 60),
+                ),
+                child: const Center(
                   child: Text(
                     "Confirm Order",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow,
-                  minimumSize: Size(double.infinity, 60),
                 ),
               ),
             ],
@@ -239,4 +243,4 @@ class CartPage extends StatelessWidget {
       ),
     );
   }
-} 
+}

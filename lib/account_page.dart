@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AccountPage extends StatefulWidget {
+  const AccountPage({super.key});
+
   @override
   _AccountPageState createState() => _AccountPageState();
 }
@@ -14,12 +16,12 @@ class _AccountPageState extends State<AccountPage> {
       data: _isDarkMode ? ThemeData.dark() : ThemeData.light(),
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(120),
+          preferredSize: const Size.fromHeight(120),
           child: AppBar(
             backgroundColor:
                 _isDarkMode ? Colors.black : const Color.fromARGB(255, 205, 95, 6),
             flexibleSpace: Container(
-              color: _isDarkMode ? Colors.grey[850] : Color(0xFFFFC400),
+              color: _isDarkMode ? Colors.grey[850] : const Color(0xFFFFC400),
               padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -31,7 +33,7 @@ class _AccountPageState extends State<AccountPage> {
                         size: 50,
                         color: _isDarkMode ? Colors.black : Colors.yellow),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'User',
                     style: TextStyle(
@@ -40,7 +42,7 @@ class _AccountPageState extends State<AccountPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     'Login to view all the features',
                     style: TextStyle(
@@ -57,22 +59,22 @@ class _AccountPageState extends State<AccountPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               // General Section
               Section(title: 'General', children: [
                 ListTile(
-  leading: Icon(Icons.person_outline),
-  title: Text('Profile'),
+  leading: const Icon(Icons.person_outline),
+  title: const Text('Profile'),
   onTap: () {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ProfileApp()),
+      MaterialPageRoute(builder: (context) => const ProfileApp()),
     );
   },
 ),
                 SwitchListTile(
-                  secondary: Icon(Icons.dark_mode_outlined),
-                  title: Text('Dark Mode'),
+                  secondary: const Icon(Icons.dark_mode_outlined),
+                  title: const Text('Dark Mode'),
                   value: _isDarkMode,
                   onChanged: (value) {
                     setState(() {
@@ -84,30 +86,30 @@ class _AccountPageState extends State<AccountPage> {
               // Promotional Activity Section
               Section(title: 'Promotional Activity', children: [
                 ListTile(
-                  leading: Icon(Icons.star_border),
-                  title: Text('Loyalty Points'),
+                  leading: const Icon(Icons.star_border),
+                  title: const Text('Loyalty Points'),
                   onTap: () {},
                 ),
               ]),
               // Help and Support Section
               Section(title: 'Help and Support', children: [
                 ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('About Us'),
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('About Us'),
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => AboutUsPage()),
+                      MaterialPageRoute(builder: (context) => const AboutUsPage()),
                     );
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.contact_page_outlined),
-                  title: Text('Contact Information'),
+                  leading: const Icon(Icons.contact_page_outlined),
+                  title: const Text('Contact Information'),
                   onTap: () {
                     Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ContactUsPage()),
+        MaterialPageRoute(builder: (context) => const ContactUsPage()),
       );
     },
   ),
@@ -119,7 +121,7 @@ class _AccountPageState extends State<AccountPage> {
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: 0,
           onTap: (index) {},
-          items: [
+          items: const [
             BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: ''),
             BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: ''),
             BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: ''),
@@ -135,22 +137,22 @@ class Section extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const Section({required this.title, required this.children});
+  const Section({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           ...children,
         ],
       ),
@@ -162,7 +164,7 @@ class Section extends StatelessWidget {
 
 
 class ProfileApp extends StatelessWidget {
-  const ProfileApp({Key? key}) : super(key: key);
+  const ProfileApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +176,7 @@ class ProfileApp extends StatelessWidget {
 }
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -235,11 +237,11 @@ class ProfilePage extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Loyalty Points & Total Order Section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 InfoCard(
                   title: "Loyalty Points",
                   value: "0",
@@ -262,7 +264,7 @@ class ProfilePage extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.8,
             child: GestureDetector(
               onTap: () => _showDeleteAccountPopup(context), // Show the popup
-              child: ProfileOption(
+              child: const ProfileOption(
                 icon: Icons.delete,
                 title: "Delete Account",
                 color: Colors.black,
@@ -376,12 +378,12 @@ class InfoCard extends StatelessWidget {
   final Color color;
 
   const InfoCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -432,12 +434,12 @@ class ProfileOption extends StatelessWidget {
   final double fontSize;
 
   const ProfileOption({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     this.color,
     this.fontSize = 14,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -481,14 +483,16 @@ class ProfileOption extends StatelessWidget {
 
 
 class ContactUsPage extends StatelessWidget {
+  const ContactUsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contact Us'),
+        title: const Text('Contact Us'),
         backgroundColor: Colors.yellow,
       ),
-      body: Padding(
+      body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,14 +530,16 @@ class ContactUsPage extends StatelessWidget {
 
 
 class AboutUsPage extends StatelessWidget {
+  const AboutUsPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('About Us'),
+        title: const Text('About Us'),
         backgroundColor: Colors.yellow,
       ),
-      body: Padding(
+      body: const Padding(
         padding: EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(

@@ -9,10 +9,10 @@ class CakePriceListApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: const Color(0xFFFFF1E5), // Light pink background
+        backgroundColor: Color(0xFFFFF1E5), // Light pink background
         body: SafeArea(
           child: CakePriceListScreen(),
         ),

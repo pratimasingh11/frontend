@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'checkout_page.dart';
+
 class CheckoutPage extends StatelessWidget {
+  const CheckoutPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Checkout", style: TextStyle(color: Colors.white)),
+        title: const Text("Checkout", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.orange,
         elevation: 0,
       ),
@@ -15,7 +17,7 @@ class CheckoutPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Title
-            Text(
+            const Text(
               "Your Items",
               style: TextStyle(
                 fontSize: 24,
@@ -23,13 +25,13 @@ class CheckoutPage extends StatelessWidget {
                 color: Colors.orange,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             
             // Table for Items
             Expanded(
               child: Table(
                 border: TableBorder.all(color: Colors.grey.shade300),
-                columnWidths: {
+                columnWidths: const {
                   0: FlexColumnWidth(4), // Item Name
                   1: FlexColumnWidth(2), // Quantity
                   2: FlexColumnWidth(2), // Price
@@ -38,9 +40,9 @@ class CheckoutPage extends StatelessWidget {
                   // Table Header
                   TableRow(
                     decoration: BoxDecoration(color: Colors.yellow.shade100),
-                    children: [
+                    children: const [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Item",
                           style: TextStyle(
@@ -52,7 +54,7 @@ class CheckoutPage extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Quantity",
                           style: TextStyle(
@@ -64,7 +66,7 @@ class CheckoutPage extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Price",
                           style: TextStyle(
@@ -78,10 +80,10 @@ class CheckoutPage extends StatelessWidget {
                     ],
                   ),
                   // Sample Row (You can populate this dynamically)
-                  TableRow(
+                  const TableRow(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Item 1",
                           textAlign: TextAlign.center,
@@ -89,7 +91,7 @@ class CheckoutPage extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "2",
                           textAlign: TextAlign.center,
@@ -97,7 +99,7 @@ class CheckoutPage extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "\$20.00",
                           textAlign: TextAlign.center,
@@ -111,10 +113,10 @@ class CheckoutPage extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Loyalty Points Discount
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -135,10 +137,10 @@ class CheckoutPage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Total Price
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
@@ -160,7 +162,7 @@ class CheckoutPage extends StatelessWidget {
               ],
             ),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Pay Button
             Align(
@@ -171,12 +173,12 @@ class CheckoutPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   "Pay",
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),

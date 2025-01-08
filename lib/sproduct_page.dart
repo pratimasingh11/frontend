@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ProductsPage extends StatefulWidget {
+  const ProductsPage({super.key});
+
   @override
   _ProductsPageState createState() => _ProductsPageState();
 }
@@ -36,7 +38,7 @@ class _ProductsPageState extends State<ProductsPage> {
           backgroundColor: Colors.yellow[50],
           title: Text(
             product == null ? 'Add Product' : 'Edit Product',
-            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -91,14 +93,14 @@ class _ProductsPageState extends State<ProductsPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                   ),
-                  icon: Icon(Icons.photo_library, color: Colors.white),
-                  label: Text('Browse Picture'),
+                  icon: const Icon(Icons.photo_library, color: Colors.white),
+                  label: const Text('Browse Picture'),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Active',
                       style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
                     ),
@@ -119,7 +121,7 @@ class _ProductsPageState extends State<ProductsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: Colors.orange)),
+              child: const Text('Cancel', style: TextStyle(color: Colors.orange)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -129,7 +131,7 @@ class _ProductsPageState extends State<ProductsPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
               ),
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -142,10 +144,10 @@ class _ProductsPageState extends State<ProductsPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.yellow[700],
-        title: Text('Products'),
+        title: const Text('Products'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add, color: Colors.white),
+            icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () => showProductDialog(),
           ),
         ],
@@ -162,7 +164,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Search...',
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
@@ -191,9 +193,8 @@ class _ProductsPageState extends State<ProductsPage> {
             // Table Header
             Table(
               border: TableBorder.all(color: Colors.grey),
-              columnWidths: {
-                0: FlexColumnWidth(1), // ID Column
-                1: FlexColumnWidth(2), // Product Name
+              columnWidths: const {
+                0: FlexColumnWidth(1), // ID Column1: FlexColumnWidth(2), // Product Name
                 2: FlexColumnWidth(2), // Category
                 3: FlexColumnWidth(2), // Availability
                 4: FlexColumnWidth(2), // Actions
@@ -220,11 +221,11 @@ class _ProductsPageState extends State<ProductsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Colors.blue),
                             onPressed: () => showProductDialog(product: product),
                           ),
                           IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () {
                               setState(() {
                                 products.remove(product);
@@ -235,7 +236,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       ),
                     ],
                   );
-                }).toList(),
+                }),
               ],
             ),
           ],
@@ -250,7 +251,7 @@ class _ProductsPageState extends State<ProductsPage> {
       padding: const EdgeInsets.all(8.0),
       child: Text(
         text,
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
         textAlign: TextAlign.center,
       ),
     );

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'Nepali_menu_page.dart'; // Import NepaliMenuPage
 import 'indian_menu_page.dart';
+import 'chinese_menu_page.dart';
+import 'italian_page.dart';
+import 'soft drinks.dart';
+import 'sweets.dart';
 
 class CategoryPage extends StatelessWidget {
   final List<Map<String, String>> cuisines = const [
@@ -38,13 +43,51 @@ class CategoryPage extends StatelessWidget {
 
             return GestureDetector(
               onTap: () {
-                // Navigate to CuisineMenu with the selected cuisine name
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const IndianMenuPage(),
-                  ),
-                );
+                // Check for Nepali cuisine and navigate accordingly
+                if (cuisineName == 'Nepali') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NepaliMenuPage(),
+                    ),
+                  );
+                } else if (cuisineName == 'Indian') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IndianMenuPage(),
+                    ),
+                  );
+                } else if (cuisineName == 'Italian') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ItalianMenuPage(),
+                    ),
+                  );
+                } else if (cuisineName == 'Chinese') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChineseMenuPage(),
+                    ),
+                  );
+                } else if (cuisineName == 'Soft Drinks') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SoftDrinksMenuPage(),
+                    ),
+                  );
+                } else if (cuisineName == 'Sweets') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CakePriceListApp(),
+                    ),
+                  );
+                }
+                // You can add other navigation logic for different cuisines here
               },
               child: Column(
                 children: [
