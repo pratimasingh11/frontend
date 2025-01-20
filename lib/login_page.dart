@@ -1,13 +1,89 @@
 import 'package:flutter/material.dart';
-import 'signup_page.dart'; // Ensure this import is included
+import 'signup_page.dart'; // Ensure you import the correct file
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'welcome_page.dart';
+
+// Define CurvedPainter for custom background curve
+class CurvedPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()..color = const Color.fromARGB(255, 253, 228, 6);
+    final Path path = Path()
+      ..lineTo(0, 0)
+      ..lineTo(0, size.height - 40)
+      ..quadraticBezierTo(
+          size.width / 2, size.height, size.width, size.height - 40)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showError('Please enter both email and password');
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2/minoriiproject/login.php'),
+        body: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      final responseData = json.decode(response.body);
+
+      if (responseData['success']) {
+        _showSuccess('Login successful');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => WelcomePage()),
+        );
+      } else {
+        _showError(responseData['message']);
+      }
+    } catch (e) {
+      _showError('An error occurred while processing your request');
+    }
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.green,
+    ));
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message),
+      backgroundColor: Colors.red,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             CustomPaint(
               size: Size(MediaQuery.of(context).size.width, 200),
-              painter: CurvedPainter(),
+              painter: CurvedPainter(), // Now it works
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -42,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.asset(
-                          'assets/login1.png', // Ensure this image path exists
+                          'assets/logo.png', // Ensure this image path exists
                           height: 150,
                           width: 150,
                           fit: BoxFit.cover,
@@ -51,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  Text(
+                  const Text(
                     'Log in',
                     style: TextStyle(
                       fontSize: 28,
@@ -78,8 +154,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         TextField(
+                          controller: _emailController,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email),
+                            prefixIcon: const Icon(Icons.email),
                             hintText: 'Email Address',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -88,9 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 20),
                         TextField(
+                          controller: _passwordController,
                           obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock),
+                            prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible
@@ -110,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 15),
-                        Align(
+                        const Align(
                           alignment: Alignment.centerRight,
                           child: Text(
                             'Forgot Password?',
@@ -119,18 +197,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 30),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: _login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 const Color.fromARGB(255, 244, 203, 3),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 100, vertical: 15),
                           ),
-                          child: Text(
-                            'Log in',
+                          child: const Text(
+                            'Login',
                             style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
                         ),
@@ -140,10 +218,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => SignUpScreen()),
+                                builder: (context) => SignUpScreen(),
+                              ),
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "Don't have an account? Sign up",
                             style: TextStyle(color: Colors.blue),
                           ),
@@ -151,7 +230,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -159,29 +237,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-}
-
-class CurvedPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = const Color.fromARGB(255, 253, 228, 20)
-      ..style = PaintingStyle.fill;
-
-    Path path = Path()
-      ..lineTo(0, 0)
-      ..lineTo(0, size.height)
-      ..quadraticBezierTo(
-          size.width * 0.5, size.height - 30, size.width, size.height)
-      ..lineTo(size.width, 0)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

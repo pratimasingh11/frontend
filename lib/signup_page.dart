@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'login_page.dart'; // Import the login page.
 
 class CurvedPainter extends CustomPainter {
   @override
@@ -25,6 +28,8 @@ class CurvedPainter extends CustomPainter {
 }
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
@@ -33,6 +38,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   String? _selectedCollege;
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   final List<String> _colleges = [
     'Apex College',
     'Herald College',
@@ -76,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: Image.asset(
-                        'assets/login1.png',
+                        'assets/logo.png',
                         height: 150,
                         width: 150,
                         fit: BoxFit.cover,
@@ -84,7 +95,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  Text(
+                  const Text(
                     'Sign Up',
                     style: TextStyle(
                       fontSize: 28,
@@ -122,7 +133,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             });
                           },
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.school),
+                            prefixIcon: const Icon(Icons.school),
                             hintText: 'Select College',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -131,8 +142,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 15),
                         TextField(
+                          controller: _emailController,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email),
+                            prefixIcon: const Icon(Icons.email),
                             hintText: 'Email',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -141,9 +153,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 15),
                         TextField(
+                          controller: _passwordController,
                           obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock),
+                            prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible
@@ -164,9 +177,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 15),
                         TextField(
+                          controller: _confirmPasswordController,
                           obscureText: !_isConfirmPasswordVisible,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock),
+                            prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isConfirmPasswordVisible
@@ -188,17 +202,70 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 30),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            if (_passwordController.text !=
+                                _confirmPasswordController.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Passwords do not match!"),
+                                ),
+                              );
+                              return;
+                            }
+
+                            try {
+                              final response = await http.post(
+                                Uri.parse(
+                                    'http://10.0.2.2/minoriiproject/signup.php'),
+                                body: {
+                                  'email': _emailController.text,
+                                  'password': _passwordController.text,
+                                  'college': _selectedCollege,
+                                },
+                              );
+
+                              print('Raw Response: ${response.body}');
+                              final data = json.decode(response.body);
+
+                              if (data['success'] == true) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(data['message'] ??
+                                        'Sign up successful!'),
+                                  ),
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginScreen()),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(data['message'] ??
+                                        'An error occurred.'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      "Error: Network error or invalid response."),
+                                ),
+                              );
+                            }
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 const Color.fromARGB(255, 244, 203, 3),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 100, vertical: 15),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Sign Up',
                             style: TextStyle(color: Colors.white, fontSize: 16),
                           ),
@@ -206,9 +273,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: 20),
                         GestureDetector(
                           onTap: () {
-                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LoginScreen()),
+                            );
                           },
-                          child: Text(
+                          child: const Text(
                             "Already have an account? Log in",
                             style: TextStyle(color: Colors.blue),
                           ),
