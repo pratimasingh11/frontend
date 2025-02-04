@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For decoding JSON response
+import 'dart:convert';
 
 class InventoryPage extends StatefulWidget {
-  const InventoryPage({super.key});
+  final int loggedInBranchId;
+
+  const InventoryPage({Key? key, required this.loggedInBranchId}) : super(key: key);
 
   @override
   _InventoryPageState createState() => _InventoryPageState();
@@ -13,9 +15,8 @@ class _InventoryPageState extends State<InventoryPage> {
   List<Map<String, dynamic>> items = [];
   TextEditingController itemNameController = TextEditingController();
   TextEditingController itemQuantityController = TextEditingController();
-
-  String loggedInBranchId = '2';  // Replace with actual logged-in user branch_id
-  int? editingItemId;  // To store the ID of the item being edited
+  TextEditingController maxQuantityController = TextEditingController();
+  int? editingItemId;
 
   @override
   void initState() {
@@ -24,18 +25,25 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   Future<void> fetchItems() async {
-    final url = 'http://10.0.2.2/minoriiproject/sinventory.php';
+    final url = 'http://localhost/minoriiproject/sinventory.php';
     try {
       final response = await http.post(Uri.parse(url), body: {
         'fetch_items': '1',
-        'branch_id': loggedInBranchId,
+        'branch_id': widget.loggedInBranchId.toString(),
       });
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
           setState(() {
-            items = List<Map<String, dynamic>>.from(data['items']);
+            items = List<Map<String, dynamic>>.from(data['items']).map((item) {
+              return {
+                'item_id': item['item_id'],
+                'item_name': item['item_name'],
+                'quantity': int.parse(item['quantity'].toString()), // Ensure conversion
+                'max_quantity': int.parse(item['max_quantity'].toString()), // Ensure conversion
+              };
+            }).toList();
           });
         } else {
           print('Failed to fetch items: ${data['message']}');
@@ -48,20 +56,26 @@ class _InventoryPageState extends State<InventoryPage> {
     }
   }
 
-  Future<void> addItem(String name, String quantity) async {
-    final url = 'http://10.0.2.2/minoriiproject/sinventory.php';
+  Future<void> addItem(String name, String quantity, String maxQuantity) async {
+    if (int.tryParse(quantity) == null || int.tryParse(maxQuantity) == null) {
+      print('Invalid quantity or max quantity');
+      return;
+    }
+
+    final url = 'http://localhost/minoriiproject/sinventory.php';
     try {
       final response = await http.post(Uri.parse(url), body: {
         'add_item': '1',
         'item_name': name,
         'quantity': quantity,
-        'branch_id': loggedInBranchId,
+        'max_quantity': maxQuantity,
+        'branch_id': widget.loggedInBranchId.toString(),
       });
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
-          fetchItems(); // Refresh the list after adding an item
+          fetchItems();
         } else {
           print('Failed to add item: ${data['message']}');
         }
@@ -73,21 +87,27 @@ class _InventoryPageState extends State<InventoryPage> {
     }
   }
 
-  Future<void> updateItem(String name, String quantity) async {
-    final url = 'http://10.0.2.2/minoriiproject/sinventory.php';
+  Future<void> updateItem(String name, String quantity, String maxQuantity) async {
+    if (int.tryParse(quantity) == null || int.tryParse(maxQuantity) == null) {
+      print('Invalid quantity or max quantity');
+      return;
+    }
+
+    final url = 'http://localhost/minoriiproject/sinventory.php';
     try {
       final response = await http.post(Uri.parse(url), body: {
         'update_item': '1',
         'item_id': editingItemId.toString(),
         'item_name': name,
         'quantity': quantity,
-        'branch_id': loggedInBranchId,
+        'max_quantity': maxQuantity,
+        'branch_id': widget.loggedInBranchId.toString(),
       });
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
-          fetchItems(); // Refresh the list after updating an item
+          fetchItems();
         } else {
           print('Failed to update item: ${data['message']}');
         }
@@ -100,10 +120,10 @@ class _InventoryPageState extends State<InventoryPage> {
   }
 
   void showItemDialog({Map<String, dynamic>? item}) {
-    // If item is provided, it's for editing
     itemNameController.text = item != null ? item['item_name'] : '';
-    itemQuantityController.text = item != null ? item['quantity'] : '';
-    editingItemId = item != null ? item['item_id'] : null;  // Store the item id for editing
+    itemQuantityController.text = item != null ? item['quantity'].toString() : ''; // Convert to String
+    maxQuantityController.text = item != null ? item['max_quantity'].toString() : ''; // Convert to String
+    editingItemId = item != null ? item['item_id'] : null;
 
     showDialog(
       context: context,
@@ -121,6 +141,13 @@ class _InventoryPageState extends State<InventoryPage> {
               TextField(
                 controller: itemQuantityController,
                 decoration: const InputDecoration(labelText: 'Quantity'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: maxQuantityController,
+                decoration: const InputDecoration(labelText: 'Max Quantity'),
+                keyboardType: TextInputType.number,
               ),
             ],
           ),
@@ -131,13 +158,13 @@ class _InventoryPageState extends State<InventoryPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (itemNameController.text.isNotEmpty && itemQuantityController.text.isNotEmpty) {
+                if (itemNameController.text.isNotEmpty &&
+                    itemQuantityController.text.isNotEmpty &&
+                    maxQuantityController.text.isNotEmpty) {
                   if (editingItemId == null) {
-                    // Add new item if editingItemId is null
-                    await addItem(itemNameController.text, itemQuantityController.text);
+                    await addItem(itemNameController.text, itemQuantityController.text, maxQuantityController.text);
                   } else {
-                    // Update existing item
-                    await updateItem(itemNameController.text, itemQuantityController.text);
+                    await updateItem(itemNameController.text, itemQuantityController.text, maxQuantityController.text);
                   }
                 }
                 Navigator.pop(context);
@@ -150,11 +177,12 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.yellow[700], // Set the same color as CategoriesPage
+        backgroundColor: Colors.yellow[700],
         title: const Text('Inventory'),
         actions: [
           IconButton(
@@ -173,16 +201,21 @@ class _InventoryPageState extends State<InventoryPage> {
                   border: TableBorder.all(),
                   children: [
                     TableRow(
-                      decoration: BoxDecoration(color: Colors.yellow[100]), // Table header color
-                      children: [
+                      decoration: BoxDecoration(color: Colors.yellow[100]),
+                      children: const [
                         Padding(padding: EdgeInsets.all(8.0), child: Text('ID')),
                         Padding(padding: EdgeInsets.all(8.0), child: Text('Item Name')),
                         Padding(padding: EdgeInsets.all(8.0), child: Text('Quantity')),
+                        Padding(padding: EdgeInsets.all(8.0), child: Text('Max Quantity')),
                         Padding(padding: EdgeInsets.all(8.0), child: Text('Actions')),
                       ],
                     ),
                     ...items.map((item) {
+                      bool isLowStock = item['quantity'] < item['max_quantity'];
                       return TableRow(
+                        decoration: BoxDecoration(
+                          color: isLowStock ? const Color.fromARGB(255, 233, 34, 54) : null,
+                        ),
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -194,7 +227,11 @@ class _InventoryPageState extends State<InventoryPage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(item['quantity']),
+                            child: Text(item['quantity'].toString()), // Convert to String
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(item['max_quantity'].toString()), // Convert to String
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),

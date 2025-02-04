@@ -1,43 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For decoding JSON response
+import 'package:file_picker/file_picker.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 class CategoriesPage extends StatefulWidget {
-  const CategoriesPage({super.key});
+  final int loggedInBranchId;
+
+  const CategoriesPage({Key? key, required this.loggedInBranchId}) : super(key: key);
 
   @override
   _CategoriesPageState createState() => _CategoriesPageState();
 }
 
 class _CategoriesPageState extends State<CategoriesPage> {
-  String dropdownValue = 'ASC';
-  List<Map<String, dynamic>> categories = [];
-  final List<String> assetImages = [
-    'assets/indian.jpg',
-    'assets/nepali.jpg',
-    'assets/italian.jpg',
-    'assets/chinese.jpg',
-    'assets/sweets.jpg',
-    'assets/soft_drinks.jpg',
-  ];
-
-  String? _selectedImage;
+  late int branchId;
   TextEditingController categoryController = TextEditingController();
-
-  // Example variable, replace with actual logic to fetch the logged-in user's branch_id
-  String loggedInBranchId = '2';  // Assuming branch_id for logged-in user is 2
+  List<Map<String, dynamic>> categories = [];
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
 
   @override
   void initState() {
     super.initState();
+    branchId = widget.loggedInBranchId;
     fetchCategories();
   }
 
   // Fetch categories from the server
   Future<void> fetchCategories() async {
-    final url = 'http://10.0.2.2/minoriiproject/scategories.php?fetch_categories=1';
+    final url = Uri.parse(
+        'http://localhost/minoriiproject/scategories.php?fetch_categories=1&branch_id=$branchId');
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
@@ -45,7 +40,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             categories = List<Map<String, dynamic>>.from(data['categories']);
           });
         } else {
-          print('Failed to fetch categories');
+          print('Failed to fetch categories: ${data['message']}');
         }
       } else {
         print('Error fetching categories: ${response.body}');
@@ -55,10 +50,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
   }
 
-  // Add or edit category in the database
-  Future<void> saveCategory(String name, String imagePath, {int? categoryId}) async {
-    final url = 'http://10.0.2.2/minoriiproject/scategories.php';
-    var request = http.MultipartRequest('POST', Uri.parse(url));
+  // Save or edit a category
+  Future<void> saveCategory(String name, {int? categoryId}) async {
+    final url = Uri.parse('http://localhost/minoriiproject/scategories.php');
+    final request = http.MultipartRequest('POST', url);
 
     if (categoryId != null) {
       request.fields['edit_category'] = '1';
@@ -68,16 +63,23 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
 
     request.fields['category_name'] = name;
-    request.fields['branch_id'] = loggedInBranchId; // Pass the logged-in user's branch_id
-    request.fields['image_path'] = imagePath;
+    request.fields['branch_id'] = branchId.toString();
+
+    // Add image if one is selected
+    if (_selectedImageBytes != null && _selectedImageName != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'image_path',
+        _selectedImageBytes!,
+        filename: _selectedImageName!,
+      ));
+    }
 
     try {
-      var response = await request.send();
+      final response = await request.send();
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         print(responseBody);
-        fetchCategories();  // Refresh the list
-        print('Category saved successfully');
+        fetchCategories(); // Refresh category list after saving
       } else {
         print('Failed to save category');
       }
@@ -86,10 +88,23 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
   }
 
+  // Select an image file
+  void selectImage() async {
+    final result = await FilePicker.platform.pickFiles(withData: true, type: FileType.image);
+    if (result != null) {
+      setState(() {
+        _selectedImageBytes = result.files.first.bytes;
+        _selectedImageName = result.files.first.name;
+      });
+    }
+  }
+
   // Show category dialog for adding or editing
   void showCategoryDialog({Map<String, dynamic>? category}) {
-    _selectedImage = category != null ? category['image_path'] : null;
+    _selectedImageBytes = null;
+    _selectedImageName = null;
     categoryController.text = category != null ? category['category_name'] : '';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -113,17 +128,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  // Show a dialog to pick an image from the assets
-                  showImagePickerDialog();
-                },
-                child: const Text('Pick Image from Assets'),
+                onPressed: selectImage,
+                child: const Text('Pick Image from Files'),
               ),
-              const SizedBox(height: 16),
-              if (_selectedImage != null) ...[ 
-                Image.asset(_selectedImage!, height: 100),
-                const SizedBox(height: 10),
-              ],
             ],
           ),
           actions: [
@@ -133,45 +140,18 @@ class _CategoriesPageState extends State<CategoriesPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // Save category if name is not empty and an image is selected
-                if (categoryController.text.isNotEmpty && _selectedImage != null) {
-                  await saveCategory(categoryController.text, _selectedImage!,
-                      categoryId: category != null ? category['category_id'] : null);
+                if (categoryController.text.isNotEmpty) {
+                  await saveCategory(
+                    categoryController.text,
+                    categoryId: category?['category_id'],
+                  );
+                  Navigator.pop(context);
                 }
-                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               child: const Text('Save'),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  // Function to show the image picker dialog for assets
-  void showImagePickerDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select an Image'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: assetImages.map((imagePath) {
-                return ListTile(
-                  title: Text(imagePath.split('/').last), // Show file name
-                  leading: Image.asset(imagePath, width: 50, height: 50),
-                  onTap: () {
-                    setState(() {
-                      _selectedImage = imagePath;
-                    });
-                    Navigator.pop(context);
-                  },
-                );
-              }).toList(),
-            ),
-          ),
         );
       },
     );
@@ -199,7 +179,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
               child: SingleChildScrollView(
                 child: Table(
                   border: TableBorder.all(color: Colors.grey),
-                  columnWidths: {
+                  columnWidths: const {
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(3),
                     2: FlexColumnWidth(2),
@@ -239,7 +219,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(category['category_id'].toString(), textAlign: TextAlign.center),
+                            child: Text(category['category_id'].toString(),
+                                textAlign: TextAlign.center),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -247,17 +228,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.orange),
-                                    onPressed: () => showCategoryDialog(category: category),
-                                  ),
-                                ],
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.orange),
+                                  onPressed: () => showCategoryDialog(category: category),
+                                ),
+                              ],
                             ),
                           ),
                         ],

@@ -1,136 +1,195 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 
 class ProductsPage extends StatefulWidget {
-  const ProductsPage({super.key});
+  final int loggedInBranchId;
+
+  const ProductsPage({Key? key, required this.loggedInBranchId}) : super(key: key);
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  // For the combo box
-  String dropdownValue = 'ASC';
+  late int branchId;
+  TextEditingController productController = TextEditingController();
+  List<Map<String, dynamic>> products = [];
+  List<Map<String, dynamic>> categories = [];
+  Uint8List? _selectedImageBytes;
+  String? _selectedImageName;
+  int? _editingProductId;
 
-  // Example product data
-  final List<Map<String, dynamic>> products = [
-    {'id': 1, 'name': 'Product A', 'category': 'Category 1', 'isAvailable': true},
-    {'id': 2, 'name': 'Product B', 'category': 'Category 2', 'isAvailable': false},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    branchId = widget.loggedInBranchId;
+    fetchProducts();
+    fetchCategories();
+  }
 
-  // Example categories
-  final List<String> categories = ['Category 1', 'Category 2', 'Category 3'];
+  Future<void> fetchProducts() async {
+    final response = await http.get(Uri.parse(
+        'http://localhost/minoriiproject/sproducts.php?action=fetch_products&branch_id=${widget.loggedInBranchId}'));
+    if (response.statusCode == 200) {
+      setState(() {
+        products = List<Map<String, dynamic>>.from(
+            json.decode(response.body)['products']);
+      });
+    } else {
+      print('Failed to fetch products');
+    }
+  }
 
-  // Pop-up dialog to Add/Edit a product
+  Future<void> fetchCategories() async {
+    final response = await http.get(Uri.parse(
+        'http://localhost/minoriiproject/sproducts.php?action=fetch_categories&branch_id=${widget.loggedInBranchId}'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        categories = List<Map<String, dynamic>>.from(data['categories']);
+      });
+    } else {
+      print('Failed to fetch categories');
+    }
+  }
+
+  Future<void> saveProduct(Map<String, dynamic> product) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+            'http://localhost/minoriiproject/sproducts.php?action=${_editingProductId == null ? 'add_product' : 'edit_product'}'),
+      );
+      request.fields['product_name'] = product['product_name'];
+      request.fields['product_price'] = product['product_price'].toString();
+      request.fields['category_id'] = product['category_id'].toString();
+      request.fields['branch_id'] = widget.loggedInBranchId.toString();
+      request.fields['is_available'] = product['is_available'] ? '1' : '0';
+
+      if (_selectedImageBytes != null && _selectedImageName != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'image_path',
+          _selectedImageBytes!,
+          filename: _selectedImageName!,
+        ));
+      }
+       if (_editingProductId != null) {
+        request.fields['product_id'] = _editingProductId.toString();
+      }
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final respData = jsonDecode(respStr);
+
+        if (respData['success'] == true) {
+          fetchProducts();
+          Navigator.pop(context);
+        } else {
+          print('Error: ${respData['message']}');
+        }
+      } else {
+        print('Failed to save product');
+      }
+    } catch (e) {
+      print('Error saving product: $e');
+    }
+  }
+
+  void selectImage() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        withData: true,
+        type: FileType.image,
+      );
+      if (result != null) {
+        setState(() {
+          _selectedImageBytes = result.files.first.bytes;
+          _selectedImageName = result.files.first.name;
+        });
+      }
+    } catch (e) {
+      print('Error selecting image: $e');
+    }
+  }
+
   void showProductDialog({Map<String, dynamic>? product}) {
-    final TextEditingController nameController = TextEditingController(
-      text: product != null ? product['name'] : '',
-    );
-    final TextEditingController priceController = TextEditingController(
-      text: product != null ? product['price']?.toString() : '',
-    );
-    String selectedCategory = product != null ? product['category'] : categories[0];
-    bool isAvailable = product != null ? product['isAvailable'] : false;
+    _selectedImageBytes = null;
+    _selectedImageName = null;
+    final nameController =
+        TextEditingController(text: product?['product_name']);
+    final priceController =
+        TextEditingController(text: product?['product_price']?.toString());
+    int selectedCategoryId = product?['category_id'] ??
+        (categories.isNotEmpty ? categories[0]['category_id'] : 0);
+    bool isAvailable = product == null ? true : product['is_available'] == 1;
+
+    _editingProductId = product?['product_id'];
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.yellow[50],
-          title: Text(
-            product == null ? 'Add Product' : 'Edit Product',
-            style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-          ),
+          title: Text(product == null ? 'Add Product' : 'Edit Product'),
           content: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Product Name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Product Name'),
                 ),
-                const SizedBox(height: 10),
                 TextField(
                   controller: priceController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Price',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Price'),
                 ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  items: categories.map((String category) {
-                    return DropdownMenuItem<String>(
-                      value: category,
-                      child: Text(category),
+                DropdownButtonFormField<int>(
+                  value: selectedCategoryId,
+                  items: categories.map<DropdownMenuItem<int>>((category) {
+                    return DropdownMenuItem<int>(
+                      value: category['category_id'],
+                      child: Text(category['category_name']),
                     );
                   }).toList(),
-                  onChanged: (String? newValue) {
+                  onChanged: (value) {
                     setState(() {
-                      selectedCategory = newValue!;
+                      selectedCategoryId = value!;
                     });
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Category',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
+                  decoration: const InputDecoration(labelText: 'Category'),
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Add functionality for picture upload
+                ElevatedButton(
+                  onPressed: selectImage,
+                  child: const Text('Pick Image from Files'),
+                ),
+                SwitchListTile(
+                  title: const Text('Available'),
+                  value: isAvailable,
+                  onChanged: (value) {
+                    setState(() => isAvailable = value);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                  ),
-                  icon: const Icon(Icons.photo_library, color: Colors.white),
-                  label: const Text('Browse Picture'),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Active',
-                      style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
-                    ),
-                    Switch(
-                      value: isAvailable,
-                      onChanged: (bool value) {
-                        setState(() {
-                          isAvailable = value;
-                        });
-                      },
-                      activeColor: Colors.orange,
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.orange)),
-            ),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
-                // Add or edit logic
-                Navigator.pop(context);
+                final newProduct = {
+                  'product_name': nameController.text,
+                  'product_price':
+                      double.tryParse(priceController.text) ?? 0.0,
+                  'category_id': selectedCategoryId,
+                  'is_available': isAvailable,
+                };
+                saveProduct(newProduct);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-              ),
               child: const Text('Save'),
             ),
           ],
@@ -139,7 +198,7 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -153,116 +212,83 @@ class _ProductsPageState extends State<ProductsPage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Search bar and combo box
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: dropdownValue,
-                  items: <String>['ASC', 'DESC']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      dropdownValue = newValue!;
-                    });
+          children: [Expanded(
+              child: SingleChildScrollView(
+                child: Table(
+                  border: TableBorder.all(color: Colors.grey),
+                  columnWidths: const {
+                    0: FlexColumnWidth(1),
+                    1: FlexColumnWidth(3),
+                    2: FlexColumnWidth(2)
                   },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Table Header
-            Table(
-              border: TableBorder.all(color: Colors.grey),
-              columnWidths: const {
-                0: FlexColumnWidth(1), // ID Column1: FlexColumnWidth(2), // Product Name
-                2: FlexColumnWidth(2), // Category
-                3: FlexColumnWidth(2), // Availability
-                4: FlexColumnWidth(2), // Actions
-              },
-              children: [
-                TableRow(
-                  decoration: BoxDecoration(color: Colors.yellow[100]),
                   children: [
-                    headerCell('ID'),
-                    headerCell('Product Name'),
-                    headerCell('Category'),
-                    headerCell('Is Available'),
-                    headerCell('Actions'),
-                  ],
-                ),
-                ...products.map((product) {
-                  return TableRow(
-                    children: [
-                      cell(product['id'].toString()),
-                      cell(product['name']),
-                      cell(product['category']),
-                      cell(product['isAvailable'] ? 'Yes' : 'No'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    TableRow(
+                      decoration: BoxDecoration(color: Colors.yellow[100]),
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('ID',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange),
+                              textAlign: TextAlign.center),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Product Name',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange),
+                              textAlign: TextAlign.center),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('Actions',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange),
+                              textAlign: TextAlign.center),
+                        ),
+                      ],
+                    ),
+                    ...products.map((product) {
+                      return TableRow(
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => showProductDialog(product: product),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(product['product_id'].toString(),
+                                textAlign: TextAlign.center),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                products.remove(product);
-                              });
-                            },
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(product['product_name'],
+                                textAlign: TextAlign.center),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.orange),
+                                  onPressed: () =>
+                                      showProductDialog(product: product),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
-                      ),
-                    ],
-                  );
-                }),
-              ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Helper methods for table cells
-  Widget headerCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget cell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
       ),
     );
   }

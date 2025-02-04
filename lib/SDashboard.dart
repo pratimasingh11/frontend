@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'scategories_page.dart'; // Import CategoriesPage
+import 'package:shared_preferences/shared_preferences.dart';
+import 'scategories_page.dart';
 import 'sinventory_page.dart';
+import 'sproduct_page.dart';
 
 class SellersDashboard extends StatefulWidget {
-  final String userEmail;
-
-  const SellersDashboard({Key? key, required this.userEmail}) : super(key: key);
+  const SellersDashboard({Key? key}) : super(key: key);
 
   @override
   _SellersDashboardState createState() => _SellersDashboardState();
@@ -16,7 +16,8 @@ class SellersDashboard extends StatefulWidget {
 class _SellersDashboardState extends State<SellersDashboard> {
   String branchName = "Loading...";
   String selectedSection = "Orders";
-  bool isSidebarVisible = true; // Track visibility of the sidebar
+  bool isSidebarVisible = true;
+  int? branchId;
 
   final List<Map<String, dynamic>> menuItems = [
     {'title': 'Orders', 'icon': Icons.shopping_cart},
@@ -30,93 +31,83 @@ class _SellersDashboardState extends State<SellersDashboard> {
   @override
   void initState() {
     super.initState();
-    _fetchBranchName();
+    _fetchBranchDetails();
   }
 
-  Future<void> _fetchBranchName() async {
-    final url = Uri.parse('http://10.0.2.2/minoriiproject/SDashboard.php');
-    final response = await http.post(url, body: {'email': widget.userEmail});
+Future<void> _fetchBranchDetails() async {
+  final prefs = await SharedPreferences.getInstance();
+  final sessionId = prefs.getString('session_id');
+  final storedBranchId = prefs.getInt('branch_id');
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success']) {
-        setState(() {
-          branchName = data['branch_name'];
-        });
+  print("Retrieved session_id: $sessionId");
+  print("Retrieved branch_id: $storedBranchId");
+
+  if (sessionId == null || storedBranchId == null) {
+    setState(() {
+      branchName = "Session expired, please log in again.";
+    });
+    return;
+  }
+
+
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost/minoriiproject/SDashboard.php'),
+        headers: {
+          'X-Session-ID': sessionId, // Send session ID
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'branch_id': storedBranchId}), // Send branch_id
+      );
+
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success']) {
+          setState(() {
+            branchName = data['branch_name']; // Update branch name from response
+            branchId = storedBranchId;
+          });
+        } else {
+          setState(() {
+            branchName = "Error: ${data['message']}";
+          });
+        }
       } else {
         setState(() {
-          branchName = "Branch not found";
+          branchName = "Server Error: ${response.statusCode}";
         });
       }
-    } else {
+    } catch (e) {
+      print("Network Error: $e");
       setState(() {
-        branchName = "Error fetching branch";
+        branchName = "Network error, please check your connection.";
       });
     }
-  }
-
-  Widget _buildOrdersTable() {
-    final List<Map<String, dynamic>> orders = [
-      {'id': 1, 'name': 'Product A', 'price': 100, 'quantity': 2, 'billNo': 101},
-      {'id': 2, 'name': 'Product B', 'price': 200, 'quantity': 1, 'billNo': 102},
-      {'id': 3, 'name': 'Product C', 'price': 150, 'quantity': 5, 'billNo': 103},
-    ];
-
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('ID')),
-        DataColumn(label: Text('Name')),
-        DataColumn(label: Text('Price')),
-        DataColumn(label: Text('Quantity')),
-        DataColumn(label: Text('Bill No')),
-      ],
-      rows: orders
-          .map((order) => DataRow(cells: [
-                DataCell(Text(order['id'].toString())),
-                DataCell(Text(order['name'])),
-                DataCell(Text(order['price'].toString())),
-                DataCell(Text(order['quantity'].toString())),
-                DataCell(Text(order['billNo'].toString())),
-              ]))
-          .toList(),
-    );
   }
 
   Widget _buildContent() {
     switch (selectedSection) {
       case 'Orders':
-        return _buildSectionContent('Orders');
+        return const Center(child: Text('Orders content coming soon'));
       case 'Categories':
-        return CategoriesPage(); // CategoriesPage will be shown when selected
+        return branchId != null
+            ? CategoriesPage(loggedInBranchId: branchId!)
+            : const Center(child: Text('Error: Branch ID not available'));
       case 'Products':
-        return _buildSectionContent('Products');
-      case 'Bill Lists':
-        return _buildSectionContent('Bill Lists');
-      case 'Reports':
-        return const Center(child: Text('Reports Content Coming Soon'));
+        return branchId != null
+            ? ProductsPage(loggedInBranchId: branchId!)
+            : const Center(child: Text('Error: Branch ID not available'));
       case 'Inventory':
-        return InventoryPage();
+        return branchId != null
+            ? InventoryPage(loggedInBranchId: branchId!)
+            : const Center(child: Text('Error: Branch ID not available'));
       default:
-        return const Center(child: Text('Select an item from the left menu'));
+        return const Center(child: Text('Select an item from the menu'));
     }
-  }
-
-  Widget _buildSectionContent(String sectionName) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
-      ),
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Center(
-        child: Text(
-          '$sectionName Content Coming Soon',
-          style: TextStyle(fontSize: 18, color: Colors.black.withOpacity(0.7)),
-        ),
-      ),
-    );
   }
 
   @override
@@ -124,10 +115,9 @@ class _SellersDashboardState extends State<SellersDashboard> {
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: isSidebarVisible ? 250 : 60, // Adjust width based on visibility
+            width: isSidebarVisible ? 250 : 60,
             color: Colors.yellow.shade700,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +145,6 @@ class _SellersDashboardState extends State<SellersDashboard> {
                     ],
                   ),
                 ),
-                // Hamburger Button
                 GestureDetector(
                   onTap: () {
                     setState(() {
@@ -182,7 +171,7 @@ class _SellersDashboardState extends State<SellersDashboard> {
                                 menuItems[index]['title'],
                                 style: const TextStyle(color: Colors.black),
                               )
-                            : null, // Hide title when sidebar is hidden
+                            : null,
                         onTap: () {
                           setState(() {
                             selectedSection = menuItems[index]['title'];
@@ -197,15 +186,13 @@ class _SellersDashboardState extends State<SellersDashboard> {
               ],
             ),
           ),
-          // Main content area
           Expanded(
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  if (isSidebarVisible)
-                    const Divider(color: Colors.black), // Add divider between sections
+                  if (isSidebarVisible) const Divider(color: Colors.black),
                   Expanded(child: _buildContent()),
                 ],
               ),

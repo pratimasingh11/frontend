@@ -11,9 +11,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  file_picker: ^5.0.0
   cupertino_icons: ^1.0.8
-  http: ^1.1.0 # Use the latest stable version
-  image_picker: ^0.8.5+3  # Add the latest version
+  http: ^1.2.2
+  provider: ^6.1.2
+  shared_preferences: ^2.0.6
 
 
 dev_dependencies:
@@ -28,13 +30,8 @@ flutter:
   assets:
     - assets/logo.png
     - assets/login1.png
-    - assets/indian.jpg
-    - assets/nepali.jpg
-    - assets/italian.jpg
-    - assets/chinese.jpg
-    - assets/sweets.jpg
-    - assets/soft_drinks.jpg
-    
+    - assets/logos.png
+    - assets/logo.png
 
 flutter_icons:
   android: true

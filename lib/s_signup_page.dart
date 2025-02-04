@@ -31,10 +31,10 @@ class s_SignUpScreen extends StatefulWidget {
   const s_SignUpScreen({super.key});
 
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  s_SignUpScreenState createState() => s_SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<s_SignUpScreen> {
+class s_SignUpScreenState extends State<s_SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   String? _selectedCollege;
@@ -182,8 +182,7 @@ class _SignUpScreenState extends State<s_SignUpScreen> {
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
-                              icon: Icon(
-                                _isConfirmPasswordVisible
+                              icon: Icon(_isConfirmPasswordVisible
                                     ? Icons.visibility
                                     : Icons.visibility_off,
                               ),
@@ -216,7 +215,7 @@ class _SignUpScreenState extends State<s_SignUpScreen> {
                             try {
                               final response = await http.post(
                                 Uri.parse(
-                                    'http://10.0.2.2/minoriiproject/s_signup.php'),
+                                    'http://localhost/minoriiproject/s_signup.php'),
                                 body: {
                                   'email': _emailController.text,
                                   'password': _passwordController.text,
@@ -237,7 +236,8 @@ class _SignUpScreenState extends State<s_SignUpScreen> {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => s_LoginScreen()),
+                                      builder: (context) =>
+                                          const s_LoginScreen()),
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -276,7 +276,7 @@ class _SignUpScreenState extends State<s_SignUpScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => s_LoginScreen()),
+                                  builder: (context) => const s_LoginScreen()),
                             );
                           },
                           child: const Text(

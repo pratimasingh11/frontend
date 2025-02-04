@@ -26,7 +26,7 @@ class CheckoutPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Table for Items
             Expanded(
               child: Table(
@@ -173,7 +173,8 @@ class CheckoutPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
