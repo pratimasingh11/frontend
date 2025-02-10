@@ -1,79 +1,80 @@
 <?php
-// Enabling error reporting for debugging
-ini_set('display_errors', 1); // Show errors directly in the page
-error_reporting(E_ALL); // Report all types of errors
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// Database connection
 $host = "localhost";
 $username = "root";
 $password = "";
-$dbname = "easymeal";
+$dbname = "easymeals";
 
-// Creating the database connection
 $conn = new mysqli($host, $username, $password, $dbname);
 
-// Checking the connection error
-if ($conn->connect_error) {
+if ($conn->connect_error) { 
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get the data from Flutter (POST request)
+$full_name = $_POST['full_name'] ?? '';
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 $college = $_POST['college'] ?? '';
 
-// Validate input
-if (empty($email) || empty($password) || empty($college)) {
+if (empty($full_name) || empty($email) || empty($password) || empty($college)) {
     echo json_encode(["success" => false, "message" => "All fields are required."]);
     exit;
 }
 
-// Map college to branch_id
-$collegeBranches = [
-    'Apex College' => 1,
-    'Herald College' => 2,
-    'Islington College' => 3,
-    'Kavya College' => 4,
-    'KIST College' => 5,
-    'Kathmandu Engineering College' => 6,
-    'Texas College' => 7,
-    'Trinity College' => 8,
-];
-
-$branch_id = $collegeBranches[$college] ?? null;
-
-if (!$branch_id) {
-    echo json_encode(["success" => false, "message" => "Invalid college selected."]);
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["success" => false, "message" => "Invalid email format."]);
     exit;
 }
 
-// Hash the password
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-// Defining the role (in this case, it's 'seller')
+$conn->begin_transaction();
+try {
+    $branchCheckStmt = $conn->prepare("SELECT branch_id FROM branches WHERE branch_name = ?");
+    if ($branchCheckStmt === false) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    $branchCheckStmt->bind_param("s", $college);
+    $branchCheckStmt->execute();
+    $branchCheckStmt->bind_result($branch_id);
+    $branchExists = $branchCheckStmt->fetch();
+    $branchCheckStmt->close();
 
+    if (!$branchExists) {
+        $insertBranchStmt = $conn->prepare("INSERT INTO branches (branch_name) VALUES (?)");
+        if ($insertBranchStmt === false) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+        
+        $insertBranchStmt->bind_param("s", $college);
+        $insertBranchStmt->execute();
+        $branch_id = $insertBranchStmt->insert_id;
+        $insertBranchStmt->close();
+    }
 
-// Inserting the data into the database
-$sql = "INSERT INTO users (email, password_hash, branch_id, branch_name) VALUES (?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
+    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password_hash, branch_id) VALUES (?, ?, ?, ?)");
+    if ($stmt === false) {
+        throw new Exception("Prepare failed: " . $conn->error);
+    }
+    
+    $stmt->bind_param("sssi", $full_name, $email, $password_hash, $branch_id);
 
-if (!$stmt) {
-    echo json_encode(["success" => false, "message" => "Error: " . $conn->error]);
-    exit;
+    if ($stmt->execute()) {
+        $conn->commit();
+        echo json_encode(["success" => true, "message" => "User signed up successfully!"]);
+    } else {
+        throw new Exception("Error: " . $stmt->error);
+    }
+
+    $stmt->close();
+} catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }
 
-// Binding the parameters (s = string, i = integer)
-$stmt->bind_param("ssis", $email, $password_hash, $branch_id, $college);
-
-// Execute the query and check if it's successful
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "User signed up successfully!"]);
-} else {
-    echo json_encode(["success" => false, "message" => "Error: " . $stmt->error]);
-}
-
-
-// Close the statement and the connection
-$stmt->close();
 $conn->close();
+
 ?>

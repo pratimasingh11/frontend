@@ -1,4 +1,8 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST");
+header("Content-Type: application/json");
+header("Access-Control-Allow-Headers: Content-Type");
 // Enabling error reporting for debugging
 ini_set('display_errors', 1); // Show errors directly in the page
 error_reporting(E_ALL); // Report all types of errors
@@ -7,7 +11,7 @@ error_reporting(E_ALL); // Report all types of errors
 $host = "localhost";
 $username = "root";
 $password = "";
-$dbname = "easymeal";
+$dbname = "easymeals";
 
 // Creating the database connection
 $conn = new mysqli($host, $username, $password, $dbname);
@@ -28,47 +32,46 @@ if (empty($email) || empty($password) || empty($college)) {
     exit;
 }
 
-// Map college to branch_id
-$collegeBranches = [
-    'Apex College' => 1,
-    'Herald College' => 2,
-    'Islington College' => 3,
-    'Kavya College' => 4,
-    'KIST College' => 5,
-    'Kathmandu Engineering College' => 6,
-    'Texas College' => 7,
-    'Trinity College' => 8,
-];
-
-$branch_id = $collegeBranches[$college] ?? null;
-
-if (!$branch_id) {
-    echo json_encode(["success" => false, "message" => "Invalid college selected."]);
-    exit;
-}
-
 // Hash the password
 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-// Defining the role (in this case, it's 'seller')
 $role = 'seller';
 
-// Inserting the data into the database with both branch_id and branch_name
-$sql = "INSERT INTO users (email, password_hash, branch_id, branch_name, role) VALUES (?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
+// Start transaction for atomic operation
+$conn->begin_transaction();
+try {
+    // Check if the branch already exists
+    $branchCheckStmt = $conn->prepare("SELECT branch_id FROM branches WHERE branch_name = ?");
+    $branchCheckStmt->bind_param("s", $college);
+    $branchCheckStmt->execute();
+    $branchCheckStmt->bind_result($branch_id);
+    $branchExists = $branchCheckStmt->fetch();
+    $branchCheckStmt->close();
 
-// Binding the parameters (s = string, i = integer)
-$stmt->bind_param("ssiss", $email, $password_hash, $branch_id, $college, $role);
+    if (!$branchExists) {
+        // Insert the branch if it doesn't exist
+        $insertBranchStmt = $conn->prepare("INSERT INTO branches (branch_name) VALUES (?)");
+        $insertBranchStmt->bind_param("s", $college);
+        $insertBranchStmt->execute();
+        $branch_id = $insertBranchStmt->insert_id;
+        $insertBranchStmt->close();
+    }
 
-// Execute the query and check if it's successful
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "User signed up successfully!"]);
-} else {
-    echo json_encode(["success" => false, "message" => "Error: " . $stmt->error]);
+    // Insert the user data into the users table
+    $userStmt = $conn->prepare("INSERT INTO users (email, password_hash, branch_id, role) VALUES (?, ?, ?, ?)");
+    $userStmt->bind_param("ssis", $email, $password_hash, $branch_id, $role);
+
+    if ($userStmt->execute()) {
+        $conn->commit();
+        echo json_encode(["success" => true, "message" => "User signed up successfully!"]);
+    } else {
+        throw new Exception("Error: " . $userStmt->error);
+    }
+
+    $userStmt->close();
+} catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }
 
-// Close the statement and the connection
-$stmt->close();
 $conn->close();
-
 ?>

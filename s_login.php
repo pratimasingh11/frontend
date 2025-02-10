@@ -1,55 +1,90 @@
 <?php
-// Enable error reporting to debug issues
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Content-Type: application/json");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-// Connect to the database
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Database connection
 $host = "localhost";
-$db_name = "easymeal";
+$db_name = "easymeals";
 $db_user = "root";
 $db_password = "";
 
+// Improved connection with error reporting
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 $conn = new mysqli($host, $db_user, $db_password, $db_name);
 
-// Check if the connection is successful
-if ($conn->connect_error) {
-    die(json_encode(["success" => false, "message" => "Connection failed: " . $conn->connect_error]));
-}
+// Get raw POST data
+$data = json_decode(file_get_contents("php://input"), true);
+$email = trim($data['email'] ?? '');
+$password = $data['password'] ?? '';
 
-// Retrieve the POST data
-$email = trim($_POST['email'] ?? ''); 
-$password = $_POST['password'] ?? '';
-
-// Validate inputs
+// Validate input
 if (empty($email) || empty($password)) {
     echo json_encode(["success" => false, "message" => "Email and password are required"]);
     exit;
 }
 
-// Sanitize the email (optional but recommended)
+// Sanitize email
 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
 
-// Checking if the email exists in the database
-$sql = "SELECT * FROM users WHERE email = ?";
-$stmt = $conn->prepare($sql); // Use prepared statements to prevent SQL injection
-$stmt->bind_param("s", $email); // Bind the email parameter
-$stmt->execute(); // Execute the query
+// Prepare and execute SQL query
+$sql = "SELECT user_id, email, password_hash, role, branch_id FROM users WHERE email = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-$result = $stmt->get_result(); // Get the result of the query
+// Check if user exists
 if ($result->num_rows === 0) {
     echo json_encode(["success" => false, "message" => "User not found"]);
     exit;
 }
 
-// Verify the password
-$user = $result->fetch_assoc(); // Fetch the user data as an associative array
-if (!password_verify($password, $user['password_hash'])) { // Compare the entered password with the stored hash
+$user = $result->fetch_assoc();
+
+// Ensure password_hash exists before verifying
+if (empty($user['password_hash'])) {
     echo json_encode(["success" => false, "message" => "Invalid password"]);
     exit;
 }
 
-// Return a success response
-echo json_encode(["success" => true, "message" => "Login successful", "user" => ["id" => $user['user_id'], "email" => $user['email'], "role" => $user['role']]]);
+// Verify password
+if (!password_verify($password, $user['password_hash'])) {
+    echo json_encode(["success" => false, "message" => "Invalid password"]);
+    exit;
+}
 
+// Check if user is a seller
+if ($user['role'] !== 'seller') {
+    echo json_encode(["success" => false, "message" => "Access denied: Not a seller"]);
+    exit;
+}
+
+// Start session after verifying credentials
+session_start();
+$_SESSION['email'] = $user['email'];
+$_SESSION['session_id'] = session_id();
+$_SESSION['user_id'] = $user['user_id'];
+$_SESSION['branch_id'] = $user['branch_id'];
+
+// Response after successful login
+echo json_encode([
+    "success" => true,
+    "message" => "Login successful",
+    "session_id" => session_id(),
+    "user" => [
+        "id" => $user['user_id'],
+        "email" => $user['email'],
+        "branch_id" => $user['branch_id']
+    ]
+]);
+
+// Close connections
+$stmt->close();
 $conn->close();
 ?>
