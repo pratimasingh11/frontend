@@ -61,22 +61,22 @@ class _MenuPageState extends State<MenuPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CartPage(
-                    loggedInBranchId: widget.loggedInBranchId,
-                    loggedInUserId: widget.loggedInUserId,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.shopping_cart),
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) => CartPage(
+        //             loggedInBranchId: widget.loggedInBranchId,
+        //             loggedInUserId: widget.loggedInUserId,
+        //           ),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       body: Column(
         children: [

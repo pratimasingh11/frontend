@@ -5,6 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'scategories_page.dart';
 import 'sinventory_page.dart';
 import 'sproduct_page.dart';
+import 'soffers_page.dart';
+import 'sreport_page.dart';
+import 'sorderbar.dart';
+import 'SOrdersPage.dart';
+import 'SBillPage.dart';
+import 'OrderBillDetailsPage.dart';
 
 class SellersDashboard extends StatefulWidget {
   const SellersDashboard({Key? key}) : super(key: key);
@@ -26,6 +32,8 @@ class _SellersDashboardState extends State<SellersDashboard> {
     {'title': 'Bill Lists', 'icon': Icons.receipt_long},
     {'title': 'Reports', 'icon': Icons.analytics},
     {'title': 'Inventory', 'icon': Icons.inventory},
+    {'title': 'Offers', 'icon': Icons.local_offer},
+  
   ];
 
   @override
@@ -89,26 +97,41 @@ Future<void> _fetchBranchDetails() async {
     }
   }
 
-  Widget _buildContent() {
-    switch (selectedSection) {
-      case 'Orders':
-        return const Center(child: Text('Orders content coming soon'));
-      case 'Categories':
-        return branchId != null
-            ? CategoriesPage(loggedInBranchId: branchId!)
-            : const Center(child: Text('Error: Branch ID not available'));
-      case 'Products':
-        return branchId != null
-            ? ProductsPage(loggedInBranchId: branchId!)
-            : const Center(child: Text('Error: Branch ID not available'));
-      case 'Inventory':
-        return branchId != null
-            ? InventoryPage(loggedInBranchId: branchId!)
-            : const Center(child: Text('Error: Branch ID not available'));
-      default:
-        return const Center(child: Text('Select an item from the menu'));
-    }
+ Widget _buildContent() {
+  switch (selectedSection) {
+    case 'Orders':
+      return branchId != null
+          ? SOrdersPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+    case 'Categories':
+      return branchId != null
+          ? CategoriesPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+    case 'Products':
+      return branchId != null
+          ? ProductsPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+          case 'Bill Lists':
+      return branchId != null
+          ?  SBillPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+     case 'Reports':
+      return branchId != null
+          ? SReportPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+    case 'Inventory':
+      return branchId != null
+          ? InventoryPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+    case 'Offers': 
+      return branchId != null
+          ? OffersPage(loggedInBranchId: branchId!)
+          : const Center(child: Text('Error: Branch ID not available'));
+    default:
+      return const Center(child: Text('Select an item from the menu'));
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

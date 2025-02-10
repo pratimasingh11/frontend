@@ -3,6 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'welcome_page.dart'; // Import the dashboard page
+class CurvedPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()..color = Colors.yellow[300]!;
+    final Path path = Path()
+      ..lineTo(0, 0)
+      ..lineTo(0, size.height - 40)
+      ..quadraticBezierTo(
+          size.width / 2, size.height, size.width, size.height - 40)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+  
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

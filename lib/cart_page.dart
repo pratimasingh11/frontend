@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/cart_provider.dart';
-import 'cartCheckout.dart'; // Import your CartCheckoutPage
+import 'cartCheckout.dart';
 
 class CartPage extends StatelessWidget {
   final int loggedInBranchId;
@@ -21,10 +21,19 @@ class CartPage extends StatelessWidget {
         backgroundColor: const Color(0xFFFFDE21),
       ),
       body: Consumer<CartProvider>(
+        // Consumer listens for cart changes
         builder: (context, cartProvider, _) {
           if (cartProvider.cartItems.isEmpty) {
             return const Center(child: Text('Your cart is empty.'));
           }
+
+          // Calculate totalAmount (sum of item price * quantity)
+          double totalAmount =
+              cartProvider.cartItems.values.fold(0, (sum, item) {
+            double price = double.tryParse(item['price'].toString()) ?? 0.0;
+            int quantity = item['quantity'] ?? 0;
+            return sum + (price * quantity);
+          });
 
           return ListView.builder(
             itemCount: cartProvider.cartItems.length,
@@ -37,29 +46,46 @@ class CartPage extends StatelessWidget {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton(
-          onPressed: () {
-            // Navigate to the Checkout page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const CartSummary(), // Navigate to checkout page
+        child: Consumer<CartProvider>(
+          // Recalculating total on cart change
+          builder: (context, cartProvider, _) {
+            // Calculate totalAmount (sum of item price * quantity)
+            double totalAmount =
+                cartProvider.cartItems.values.fold(0, (sum, item) {
+              double price = double.tryParse(item['price'].toString()) ?? 0.0;
+              int quantity = item['quantity'] ?? 0;
+              return sum + (price * quantity);
+            });
+
+            return ElevatedButton(
+              onPressed: () {
+                // Navigate to the Checkout page with necessary parameters
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CartSummary(
+                      loggedInBranchId: loggedInBranchId,
+                      loggedInUserId: loggedInUserId, // Pass user ID here
+                      totalAmount: totalAmount, // Pass total amount here
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFFDE21), // Button color
+                foregroundColor: Colors.black, // Text color
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(fontSize: 18),
               ),
+              child: const Text('Proceed to Checkout'),
             );
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFFDE21), // Button color
-            foregroundColor: Colors.black, // Text color
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontSize: 18),
-          ),
-          child: const Text('Proceed to Checkout'),
         ),
       ),
     );
   }
 
+  // Build individual cart item widget
   Widget buildCartItem(
       Map<String, dynamic> product, CartProvider cartProvider) {
     final productId = product['product_id'];

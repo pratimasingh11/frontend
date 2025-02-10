@@ -6,23 +6,27 @@ publish_to: 'none' # Prevent accidental publishing to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.4
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  file_picker: ^5.0.0
+  file_picker: ^8.3.2
   cupertino_icons: ^1.0.8
   http: ^1.2.2
   provider: ^6.1.2
   shared_preferences: ^2.0.6
+  url_launcher: ^6.1.5
+  image_picker: ^1.0.7
+  webview_flutter: ^4.7.0
+  fl_chart: ^0.70.2 # Update to the latest version
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
   
 
 flutter:
