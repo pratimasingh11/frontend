@@ -3,30 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 's_login_page.dart'; // Import the login page.
 
-class CurvedPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = const Color.fromARGB(255, 253, 228, 6)
-      ..style = PaintingStyle.fill;
-
-    Path path = Path()
-      ..lineTo(0, 0)
-      ..lineTo(0, size.height)
-      ..quadraticBezierTo(
-          size.width * 0.5, size.height - 30, size.width, size.height)
-      ..lineTo(size.width, 0)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
 class s_SignUpScreen extends StatefulWidget {
   const s_SignUpScreen({super.key});
 
@@ -58,241 +34,285 @@ class s_SignUpScreenState extends State<s_SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.yellow[50],
-      body: Stack(
-        children: [
-          CustomPaint(
-            size: Size(MediaQuery.of(context).size.width, 200),
-            painter: CurvedPainter(),
-          ),
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 100),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          blurRadius: 5,
-                          spreadRadius: 2,
-                        )
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'assets/logo.png',
-                        height: 150,
-                        width: 150,
-                        fit: BoxFit.cover,
+      backgroundColor: const Color.fromARGB(255, 244, 183, 16),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: 800,
+            height: 600, // Adjusted height
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Image Section - Taking equal width as the form
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        bottomLeft: Radius.circular(20),
+                      ),
+                      image: DecorationImage(
+                        image: AssetImage(
+                            'assets/signup.jpg'), // Update your image path
+                        fit: BoxFit.cover, // Ensure the image covers the area
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 4,
-                          spreadRadius: 1,
-                        )
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        DropdownButtonFormField<String>(
-                          value: _selectedCollege,
-                          items: _colleges.map((college) {
-                            return DropdownMenuItem(
-                              value: college,
-                              child: Text(college),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedCollege = value;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.school),
-                            hintText: 'Select College',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        TextField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.email),
-                            hintText: 'Email',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: !_isPasswordVisible,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.lock),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                ),
+                // Form Section - Taking equal width as the image
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, // Center content vertically
+                        crossAxisAlignment: CrossAxisAlignment
+                            .center, // Center content horizontally
+                        children: [
+                          Center(
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(15), // Rounded corners
+                              child: Image.asset(
+                                'assets/logo.png',
+                                height: 80,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                            hintText: 'Password',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 15),
-                        TextField(
-                          controller: _confirmPasswordController,
-                          obscureText: !_isConfirmPasswordVisible,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.lock),
-                            suffixIcon: IconButton(
-                              icon: Icon(_isConfirmPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                          const SizedBox(height: 20),
+                          const Center(
+                            child: Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _isConfirmPasswordVisible =
-                                      !_isConfirmPasswordVisible;
-                                });
-                              },
-                            ),
-                            hintText: 'Confirm Password',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 30),
-                        ElevatedButton(
-                          onPressed: () async {
-                            if (_passwordController.text !=
-                                _confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Passwords do not match!"),
+                          const SizedBox(height: 20),
+                          DropdownButtonFormField<String>(
+                            value: _selectedCollege,
+                            items: _colleges.map((college) {
+                              return DropdownMenuItem(
+                                value: college,
+                                child: Text(college),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCollege = value;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.school),
+                              hintText: 'Select College',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          TextField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.email),
+                              hintText: 'Email',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.lock),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                 ),
-                              );
-                              return;
-                            }
-
-                            try {
-                              final response = await http.post(
-                                Uri.parse(
-                                    'http://localhost/minoriiproject/s_signup.php'),
-                                body: {
-                                  'email': _emailController.text,
-                                  'password': _passwordController.text,
-                                  'college': _selectedCollege,
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
                                 },
-                              );
-
-                              print('Raw Response: ${response.body}');
-                              final data = json.decode(response.body);
-
-                              if (data['success'] == true) {
+                              ),
+                              hintText: 'Password',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          TextField(
+                            controller: _confirmPasswordController,
+                            obscureText: !_isConfirmPasswordVisible,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(Icons.lock),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isConfirmPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isConfirmPasswordVisible =
+                                        !_isConfirmPasswordVisible;
+                                  });
+                                },
+                              ),
+                              hintText: 'Confirm Password',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: () async {
+                              // Email validation
+                              final email = _emailController.text.trim();
+                              final emailRegex =
+                                  RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(email)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(data['message'] ??
-                                        'Sign up successful!'),
+                                  const SnackBar(
+                                    content: Text(
+                                        "Please enter a valid email address."),
                                   ),
                                 );
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const s_LoginScreen()),
-                                );
-                              } else {
+                                return;
+                              }
+
+                              // Password validation
+                              final password = _passwordController.text;
+                              final confirmPassword =
+                                  _confirmPasswordController.text;
+
+                              if (password != confirmPassword) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(data['message'] ??
-                                        'An error occurred.'),
+                                  const SnackBar(
+                                    content: Text("Passwords do not match!"),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Password strength validation
+                              final passwordRegex = RegExp(
+                                  r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$');
+                              if (!passwordRegex.hasMatch(password)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character."),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // If all validations pass, proceed with the signup process
+                              try {
+                                final response = await http.post(
+                                  Uri.parse(
+                                      'http://localhost/minoriiproject/s_signup.php'),
+                                  body: {
+                                    'email': email,
+                                    'password': password,
+                                    'college': _selectedCollege,
+                                    'role': 'seller', // Send role as 'seller'
+                                  },
+                                );
+
+                                print('Raw Response: ${response.body}');
+                                final data = json.decode(response.body);
+
+                                if (data['success'] == true) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(data['message'] ??
+                                          'Sign up successful!'),
+                                    ),
+                                  );
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const s_LoginScreen()),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(data['message'] ??
+                                          'An error occurred.'),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Error: Network error or invalid response."),
                                   ),
                                 );
                               }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      "Error: Network error or invalid response."),
-                                ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(255, 244, 203, 3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(255, 244, 183, 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 100, vertical: 15),
                             ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 100, vertical: 15),
+                            child: const Text(
+                              'Sign Up',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            ),
                           ),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          const SizedBox(height: 20),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const s_LoginScreen()),
+                              );
+                            },
+                            child: const Text(
+                              "Already have an account? Log in",
+                              style: TextStyle(color: Colors.blue),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const s_LoginScreen()),
-                            );
-                          },
-                          child: const Text(
-                            "Already have an account? Log in",
-                            style: TextStyle(color: Colors.blue),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

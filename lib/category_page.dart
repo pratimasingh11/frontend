@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'menuPage.dart'; // Import MenuPage
+// Import WelcomePage
 
 class CategoryPage extends StatefulWidget {
   final int loggedInBranchId;
   final int loggedInUserId;
 
-  const CategoryPage(
-      {super.key,
-      required this.loggedInBranchId,
-      required this.loggedInUserId});
+  const CategoryPage({
+    super.key,
+    required this.loggedInBranchId,
+    required this.loggedInUserId,
+  });
 
   @override
   State<CategoryPage> createState() => _CategoryPageState();
@@ -56,8 +58,14 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Categories'),
+        title: const Text('Categories'), // Custom AppBar title
         backgroundColor: const Color(0xFFFFDE21),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous page
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -67,7 +75,7 @@ class _CategoryPageState extends State<CategoryPage> {
               onChanged: handleSearch,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
-                hintText: 'Search Categories',
+                hintText: 'Search Categories...',
                 hintStyle: const TextStyle(
                   fontFamily: 'OpenSans',
                   fontSize: 16,
@@ -153,6 +161,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 categoryId: categoryId,
                 loggedInBranchId: widget.loggedInBranchId,
                 loggedInUserId: widget.loggedInUserId,
+                categoryName: title,
               ),
             ),
           );
@@ -204,8 +213,7 @@ class _CategoryPageState extends State<CategoryPage> {
                       ),
                     ),
                   ),
-                ),
-              ),
+                ),),
             ],
           ),
         ),

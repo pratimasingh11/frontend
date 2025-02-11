@@ -2,11 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class ProductSalesChart extends StatelessWidget {
-  final List<int> productData;  // Total quantity per product
-  final List<String> labels;    // Product names
+  final List<int> productData; // Total quantity per product
+  final List<String> labels; // Product names
 
-  const ProductSalesChart({required this.productData, required this.labels, Key? key}) : super(key: key);
-
+  const ProductSalesChart({
+    required this.productData,
+    required this.labels,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +30,11 @@ class ProductSalesChart extends StatelessWidget {
                   BarChartRodData(
                     toY: productData[index].toDouble(),
                     gradient: LinearGradient(
-                      colors: [Colors.blueAccent, Colors.lightBlueAccent],
+                      colors: [Colors.deepPurpleAccent, const Color.fromARGB(255, 205, 68, 255)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),
-                    width: 30, // Increased bar width for a bolder look
+                    width: 50, // Increased bar width for a bolder look
                     borderRadius: BorderRadius.circular(8), // Rounded corners for bars
                     backDrawRodData: BackgroundBarChartRodData(
                       show: true,
@@ -58,23 +61,42 @@ class ProductSalesChart extends StatelessWidget {
                     );
                   },
                 ),
+                axisNameWidget: Text(
+                  "Quantity",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     if (value.toInt() >= 0 && value.toInt() < labels.length) {
-                      return Text(
-                        labels[value.toInt()],
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          labels[value.toInt()],
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
                         ),
                       );
                     }
                     return const Text('');
                   },
+                ),
+                axisNameWidget: Text(
+                  "Product",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),

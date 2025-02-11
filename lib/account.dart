@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'aboutus.dart';
+import 'aboutUs.dart';
 import 'profilePage.dart';
 import 'contactUs.dart';
 import 'dart:convert';
@@ -25,12 +25,25 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: isDarkMode ? Colors.grey[900] : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 3,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -42,7 +55,7 @@ class Section extends StatelessWidget {
                 color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Column(children: children),
           ],
         ),
@@ -69,13 +82,24 @@ class InteractiveTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, size: 24),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.amber.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 24, color: Colors.amber),
+      ),
       title: Text(
         text,
-        style: const TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       ),
       trailing: trailing,
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
     );
   }
 }
@@ -103,40 +127,32 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _loadUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int userId = widget.userId;
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  int userId = widget.userId;
 
-    final response = await http.get(Uri.parse('http://10.0.2.2/minoriiproject/account.php?user_id=$userId'));
+  final response = await http.get(Uri.parse(
+      'http://10.0.2.2/minoriiproject/account.php?user_id=$userId'));
 
-    print("Response body: ${response.body}");
+  print("Response body: ${response.body}");
 
-    if (response.statusCode == 200) {
-      try {
-        final data = json.decode(response.body);
-        print("Decoded JSON: $data");
+  if (response.statusCode == 200) {
+    try {
+      final data = json.decode(response.body);
+      print("Decoded JSON: $data");
 
-        if (data['success']) {
-          setState(() {
-            fullName = data['full_name'];
-            if (data['profile_picture'] != null) {
-              String imagePath = data['profile_picture'];
-              if (imagePath.startsWith('http')) {
-                _profileImageUrl = imagePath;
-                _profileImage = null;
-              } else {
-                _profileImage = File(imagePath);
-                _profileImageUrl = null;
-              }
-            }
-          });
-        }
-      } catch (e) {
-        print("JSON decoding error: $e");
+      if (data['success']) {
+        setState(() {
+          fullName = data['full_name'];
+          _profileImageUrl = data['profile_picture'] ?? prefs.getString('profile_picture_url');
+        });
       }
-    } else {
-      print("HTTP Error: ${response.statusCode}");
+    } catch (e) {
+      print("JSON decoding error: $e");
     }
+  } else {
+    print("HTTP Error: ${response.statusCode}");
   }
+}
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -151,95 +167,146 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _uploadImage() async {
-    if (_profileImage == null) return;
+  if (_profileImage == null) return;
 
-    final uri = Uri.parse('http://10.0.2.2/minoriiproject/account.php');
-    var request = http.MultipartRequest('POST', uri);
+  final uri = Uri.parse('http://10.0.2.2/minoriiproject/account.php');
+  var request = http.MultipartRequest('POST', uri);
 
-    request.fields['user_id'] = widget.userId.toString();
-    request.files.add(await http.MultipartFile.fromPath(
-      'profile_picture',
-      _profileImage!.path,
-      contentType: MediaType('image', 'jpeg'),
-    ));
+  request.fields['user_id'] = widget.userId.toString();
+  request.files.add(await http.MultipartFile.fromPath(
+    'profile_picture',
+    _profileImage!.path,
+    contentType: MediaType('image', 'jpeg'),
+  ));
 
-    var response = await request.send();
-    var responseData = await response.stream.bytesToString();
-    final jsonResponse = json.decode(responseData);
+  var response = await request.send();
+  var responseData = await response.stream.bytesToString();
+  final jsonResponse = json.decode(responseData);
 
-    if (jsonResponse['success']) {
-      setState(() {
-        _profileImageUrl = jsonResponse['profile_picture'];
-        _profileImage = null;
-      });
+  if (jsonResponse['success']) {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_picture_url', jsonResponse['profile_picture']);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile picture updated successfully!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(jsonResponse['message'])),
-      );
-    }
+    setState(() {
+      _profileImageUrl = jsonResponse['profile_picture'];
+      _profileImage = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile picture updated successfully!')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(jsonResponse['message'])),
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Theme(
       data: _isDarkMode ? ThemeData.dark() : ThemeData.light(),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: _isDarkMode ? Colors.black : Colors.orange,
-          flexibleSpace: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: Colors.white,
-                  child: _profileImage != null
-                      ? ClipOval(
-                          child: Image.file(
-                            _profileImage!,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : (_profileImageUrl != null
-                          ? ClipOval(
-                              child: Image.network(
-                                _profileImageUrl!,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Icon(Icons.person, size: 50, color: Colors.yellow)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Welcome, $fullName',
-                style: TextStyle(
-                  color: _isDarkMode ? Colors.white : Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          backgroundColor: _isDarkMode
+              ? Colors.black
+              : const Color.fromARGB(255, 253, 228, 6),
+          title: const Text('Account'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context); // Go back to the previous page
+            },
           ),
         ),
+        backgroundColor: _isDarkMode
+            ? Colors.grey[850]
+            : const Color.fromARGB(255, 252, 248, 211),
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Profile Section
+                  Container(
+                    decoration: BoxDecoration(
+                      color: _isDarkMode ? Colors.grey[900] : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            _isDarkMode ? Colors.grey[800]! : Colors.grey[300]!,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.amber.withOpacity(0.2),
+                            child: _profileImage != null
+                                ? ClipOval(
+                                    child: Image.file(
+                                      _profileImage!,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : (_profileImageUrl != null
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          _profileImageUrl!,
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : const Icon(Icons.person,
+                                        size: 40, color: Colors.amber)),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Welcome',
+                              style: TextStyle(
+                                color:
+                                    _isDarkMode ? Colors.white : Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              fullName,
+                              style: TextStyle(
+                                color:
+                                    _isDarkMode ? Colors.white : Colors.black,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
+
+                  // General Section
                   Section(
                     title: 'General',
                     isDarkMode: _isDarkMode,
@@ -250,7 +317,8 @@ class _AccountPageState extends State<AccountPage> {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ProfilePage(userId: widget.userId),
+                            builder: (context) =>
+                                ProfilePage(userId: widget.userId),
                           ),
                         ),
                       ),
@@ -264,11 +332,34 @@ class _AccountPageState extends State<AccountPage> {
                               _isDarkMode = value;
                             });
                           },
+                          activeColor: Colors.amber,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
+
+                  // Promotional Information Section
+                  Section(
+                    title: 'Promotional Information',
+                    isDarkMode: _isDarkMode,
+                    children: [
+                      InteractiveTile(
+                        icon: Icons.person_outline,
+                        text: 'Subscription',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SubscriptionPage(userId: widget.userId),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Additional Information Section
                   Section(
                     title: 'Additional Information',
                     isDarkMode: _isDarkMode,
@@ -278,7 +369,8 @@ class _AccountPageState extends State<AccountPage> {
                         text: 'About Us',
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AboutUsPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const AboutUsPage()),
                         ),
                       ),
                       InteractiveTile(
@@ -286,7 +378,8 @@ class _AccountPageState extends State<AccountPage> {
                         text: 'Contact Us',
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ContactUsPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const ContactUsPage()),
                         ),
                       ),
                     ],

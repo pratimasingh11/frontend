@@ -14,7 +14,7 @@ class SOrdersPage extends StatefulWidget {
 class _SOrdersPageState extends State<SOrdersPage> {
   List<dynamic> orders = [];
   bool isLoading = true;
-  int? expandedOrderId; // To track which order's details are expanded
+  int? expandedOrderId;
 
   @override
   void initState() {
@@ -42,30 +42,25 @@ class _SOrdersPageState extends State<SOrdersPage> {
         },
         body: jsonEncode({'branch_id': widget.loggedInBranchId}),
       );
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
           setState(() {
-            orders = data['orders']; // Get orders from response
+            orders = data['orders'];
             isLoading = false;
           });
         } else {
-          print("Error Message: ${data['message']}");
           setState(() {
             isLoading = false;
           });
         }
       } else {
-        print("Server Error: ${response.statusCode}");
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      print("Network Error: $e");
       setState(() {
         isLoading = false;
       });
@@ -75,9 +70,9 @@ class _SOrdersPageState extends State<SOrdersPage> {
   void _toggleDetails(int orderId) {
     setState(() {
       if (expandedOrderId == orderId) {
-        expandedOrderId = null; // Collapse if already expanded
+        expandedOrderId = null;
       } else {
-        expandedOrderId = orderId; // Expand the clicked order
+        expandedOrderId = orderId;
       }
     });
   }
@@ -87,10 +82,7 @@ class _SOrdersPageState extends State<SOrdersPage> {
       final prefs = await SharedPreferences.getInstance();
       final sessionId = prefs.getString('session_id');
 
-      if (sessionId == null) {
-        print("Session ID is missing");
-        return;
-      }
+      if (sessionId == null) return;
 
       final response = await http.post(
         Uri.parse('http://localhost/minoriiproject/MarkDelivered.php'),
@@ -101,28 +93,16 @@ class _SOrdersPageState extends State<SOrdersPage> {
         body: jsonEncode({'order_id': orderId}),
       );
 
-      print("Mark Delivered Response: ${response.body}");
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
-          // Refresh the orders list
           _fetchOrders();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Order $orderId marked as delivered")),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'])),
-          );
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Server error: ${response.statusCode}")),
-        );
       }
     } catch (e) {
-      print("Error marking delivered: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Network error: $e")),
       );
@@ -130,114 +110,159 @@ class _SOrdersPageState extends State<SOrdersPage> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text("Orders"),
-      backgroundColor: Colors.yellow.shade700, // AppBar color
-    ),
-    body: Container(
-      color: Colors.yellow.shade700, // Background color for the entire page
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : orders.isEmpty
-              ? const Center(child: Text("No orders available."))
-              : ListView.builder(
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    final isExpanded = expandedOrderId == order['order_id'];
-                    final isDelivered = order['status'] == 'delivered';
-
-                    return Card(
-                      margin: const EdgeInsets.all(8.0),
-                      elevation: 4, // Add shadow
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // Rounded corners
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFF176), // Light yellow
+              Color(0xFFFFD54F), // Medium yellow
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
                       ),
-                      child: Column(
-                        children: [
-                          ListTile(
-                            title: Text(
-                              "Order ${order['order_id']}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text("Bill Number: ${order['bill_number']}"),
-                            trailing: ElevatedButton(
-                              onPressed: isDelivered
-                                  ? null // Disable button if delivered
-                                  : () => _markDelivered(order['order_id']),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDelivered
-                                    ? Colors.brown // Brown background if delivered
-                                    : Colors.green, // Green background if pending
-                                foregroundColor: Colors.white, // Text color
-                              ),
-                              child: Text(
-                                isDelivered ? "Delivered" : "Mark Delivered",
-                              ),
+                    )
+                  : orders.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No orders available.",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black87,
                             ),
                           ),
-                          if (isExpanded)
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                          itemCount: orders.length,
+                          itemBuilder: (context, index) {
+                            final order = orders[index];
+                            final isExpanded = expandedOrderId == order['order_id'];
+                            final isDelivered = order['status'] == 'delivered';
+
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 16.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.white.withOpacity(0.9),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ExpansionTile(
+                                initiallyExpanded: isExpanded,
+                                onExpansionChanged: (expanded) {
+                                  _toggleDetails(order['order_id']);
+                                },
+                                title: Text(
+                                  "Order ${order['order_id']}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  "Bill Number: ${order['bill_number']}",
+                                  style: TextStyle(
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                                  color: Colors.black87,
+                                ),
                                 children: [
-                                  const Text(
-                                    "Items:",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Items:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        ...(order['items'] as List<dynamic>).map((item) {
+                                          return Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 4.0),
+                                            child: Text(
+                                              "- ${item['item_name']} (Quantity: ${item['quantity']}, Price: \$${item['price']})",
+                                              style: TextStyle(
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          "Final Total: \$${order['final_total']}",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        Text(
+                                          "Delivery Time: ${order['delivery_date_time']}",
+                                          style: TextStyle(
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        Center(
+                                          child: ElevatedButton(
+                                            onPressed: isDelivered
+                                                ? null
+                                                : () => _markDelivered(order['order_id']),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: isDelivered
+                                                  ? Colors.grey
+                                                  : Color(0xFFFFA000), // Amber color
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 30, vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(25),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              isDelivered ? "Delivered" : "Mark Delivered",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  ...(order['items'] as List<dynamic>).map((item) {
-                                    return Text(
-                                      "- ${item['item_name']} (Quantity: ${item['quantity']}, Price: \$${item['price']})",
-                                    );
-                                  }).toList(),
-                                  const SizedBox(height: 10),
-                                  Text("Final Total: \$${order['final_total']}"),
-                                  Text(
-                                      "Delivery Time: ${order['delivery_date_time']}"),
                                 ],
                               ),
-                            ),
-                          InkWell(
-                            onTap: () => _toggleDetails(order['order_id']),
-                            child: Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    isExpanded ? "Hide Details" : "View Details",
-                                    style: const TextStyle(color: Colors.blue),
-                                  ),
-                                  Icon(
-                                    isExpanded
-                                        ? Icons.arrow_drop_up
-                                        : Icons.arrow_drop_down,
-                                    color: Colors.blue,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-    ),
-  );
-}
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

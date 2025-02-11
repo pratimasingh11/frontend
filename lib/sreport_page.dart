@@ -61,103 +61,144 @@ class _SReportPageState extends State<SReportPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Sales Analysis"),
-        backgroundColor: const Color.fromARGB(255, 221, 241, 32),
-        elevation: 0,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [const Color.fromARGB(255, 210, 248, 113), const Color.fromARGB(255, 201, 255, 64)],
-          ),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DropdownButton<String>(
-                      value: selectedFilter,
-                      items: ['Daily', 'Weekly', 'Monthly'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedFilter = newValue!;
-                          isLoading = true;
-                          fetchData();
-                        });
-                      },
-                      dropdownColor: Colors.white,
-                      icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-                      underline: Container(
-                        height: 2,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: DropdownButton<String>(
-                      value: selectedView,
-                      items: ['Orders', 'Products'].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedView = newValue!;
-                        });
-                      },
-                      dropdownColor: Colors.white,
-                      icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-                      underline: Container(
-                        height: 2,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : selectedView == "Orders"
-                      ? OrdersBarChart(ordersData: ordersData, labels: labels)
-                      : ProductSalesChart(
-                          productData: productSales,
-                          labels: productLabels,
-                        ),
-            ),
+  
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color.fromARGB(255, 243, 220, 161),
+            Colors.yellow.shade50,
           ],
         ),
       ),
-    );
-  }
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [const Color.fromARGB(255, 198, 247, 152), const Color.fromARGB(255, 239, 213, 142)],
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: DropdownButton<String>(
+                            value: selectedFilter,
+                            items: ['Daily', 'Weekly', 'Monthly'].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                selectedFilter = newValue!;
+                                isLoading = true;
+                                fetchData();
+                              });
+                            },
+                            dropdownColor: const Color.fromARGB(255, 208, 241, 181),
+                            icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                            underline: Container(),
+                            isExpanded: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [Colors.orange.shade200, Colors.deepOrange.shade100],
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: DropdownButton<String>(
+                            value: selectedView,
+                            items: ['Orders', 'Products'].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                selectedView = newValue!;
+                              });
+                            },
+                            dropdownColor: Colors.orange.shade100,
+                            icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                            underline: Container(),
+                            isExpanded: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.deepOrangeAccent,
+                      strokeWidth: 4,
+                    ),
+                  )
+                : Card(
+                    margin: EdgeInsets.all(16),
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: selectedView == "Orders"
+                          ? OrdersBarChart(ordersData: ordersData, labels: labels)
+                          : ProductSalesChart(
+                              productData: productSales,
+                              labels: productLabels,
+                            ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }

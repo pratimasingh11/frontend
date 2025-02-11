@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login_page.dart'; // Import the login page.
-  
-  class CurvedPainter extends CustomPainter {
+
+class CurvedPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
@@ -27,7 +27,6 @@ import 'login_page.dart'; // Import the login page.
   }
 }
 
-
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -40,7 +39,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false;
   String? _selectedCollege;
 
-  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -119,19 +117,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         )
                       ],
                     ),
-
                     child: Column(
                       children: [
-                        TextField(
-                          controller: _fullNameController,
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.person),
-                            hintText: 'Full Name',
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                        const SizedBox(height: 15),
                         DropdownButtonFormField<String>(
                           value: _selectedCollege,
                           items: _colleges.map((college) {
@@ -149,7 +136,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             prefixIcon: const Icon(Icons.school),
                             hintText: 'Select College',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -159,7 +147,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             prefixIcon: const Icon(Icons.email),
                             hintText: 'Email',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -169,9 +158,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
-                              icon: Icon(_isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
                               onPressed: () {
                                 setState(() {
                                   _isPasswordVisible = !_isPasswordVisible;
@@ -180,7 +171,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                             hintText: 'Password',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -191,8 +183,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
                               icon: Icon(_isConfirmPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
                               onPressed: () {
                                 setState(() {
                                   _isConfirmPasswordVisible =
@@ -202,93 +195,98 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                             hintText: 'Confirm Password',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 30),
                         ElevatedButton(
-  onPressed: () async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match!")),
-      );
-      return;
-    }
+                          onPressed: () async {
+                            if (_passwordController.text !=
+                                _confirmPasswordController.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Passwords do not match!"),
+                                ),
+                              );
+                              return;
+                            }
 
-    try {
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2/minoriiproject/signup.php'),
-        body: {
-          'full_name': _fullNameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-          'college': _selectedCollege,
-        },
-      );
+                            try {
+                              final response = await http.post(
+                                Uri.parse(
+                                    'http://10.0.2.2/minoriiproject/signup.php'),
+                                body: {
+                                  'email': _emailController.text,
+                                  'password': _passwordController.text,
+                                  'college': _selectedCollege,
+                                },
+                              );
 
-      // Print response status and body for debugging
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      
-      final data = json.decode(response.body);
+                              print('Raw Response: ${response.body}');
+                              final data = json.decode(response.body);
 
-      if (data['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Sign up successful!')),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'An error occurred.')),
-        );
-      }
-    } catch (e) {
-      print("Error occurred: $e");  // Added more specific error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: Network error or invalid response.")),
-      );
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor:  const Color.fromARGB(255, 253, 228, 6),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
-  ),
-  child: const Text(
-    'Sign Up',
-    style: TextStyle(color: Colors.black, fontSize: 16),
-  ),
-),
-
-                        const SizedBox(height: 20),
-
-                        // Already have an account? Login
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text("Already have an account? "),
-                            TextButton(
-                              onPressed: () {
+                              if (data['success'] == true) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(data['message'] ??
+                                        'Sign up successful!'),
+                                  ),
+                                );
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          const LoginScreen()),
+                                      builder: (context) => LoginScreen()),
                                 );
-                              },
-                              child: const Text(
-                                "Login",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(data['message'] ??
+                                        'An error occurred.'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      "Error: Network error or invalid response."),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 244, 203, 3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          ],
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 100, vertical: 15),
+                          ),
+                          child: const Text(
+                            'Sign Up',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LoginScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Already have an account? Log in",
+                            style: TextStyle(color: Colors.blue),
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

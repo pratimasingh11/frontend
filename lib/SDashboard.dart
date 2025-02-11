@@ -13,7 +13,7 @@ import 'SBillPage.dart';
 import 'OrderBillDetailsPage.dart';
 
 class SellersDashboard extends StatefulWidget {
-  const SellersDashboard({Key? key}) : super(key: key);
+  const SellersDashboard({super.key});
 
   @override
   _SellersDashboardState createState() => _SellersDashboardState();
@@ -33,7 +33,6 @@ class _SellersDashboardState extends State<SellersDashboard> {
     {'title': 'Reports', 'icon': Icons.analytics},
     {'title': 'Inventory', 'icon': Icons.inventory},
     {'title': 'Offers', 'icon': Icons.local_offer},
-  
   ];
 
   @override
@@ -42,41 +41,33 @@ class _SellersDashboardState extends State<SellersDashboard> {
     _fetchBranchDetails();
   }
 
-Future<void> _fetchBranchDetails() async {
-  final prefs = await SharedPreferences.getInstance();
-  final sessionId = prefs.getString('session_id');
-  final storedBranchId = prefs.getInt('branch_id');
+  Future<void> _fetchBranchDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionId = prefs.getString('session_id');
+    final storedBranchId = prefs.getInt('branch_id');
 
-  print("Retrieved session_id: $sessionId");
-  print("Retrieved branch_id: $storedBranchId");
-
-  if (sessionId == null || storedBranchId == null) {
-    setState(() {
-      branchName = "Session expired, please log in again.";
-    });
-    return;
-  }
-
-
+    if (sessionId == null || storedBranchId == null) {
+      setState(() {
+        branchName = "Session expired, please log in again.";
+      });
+      return;
+    }
 
     try {
       final response = await http.post(
         Uri.parse('http://localhost/minoriiproject/SDashboard.php'),
         headers: {
-          'X-Session-ID': sessionId, // Send session ID
+          'X-Session-ID': sessionId,
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'branch_id': storedBranchId}), // Send branch_id
+        body: jsonEncode({'branch_id': storedBranchId}),
       );
-
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success']) {
           setState(() {
-            branchName = data['branch_name']; // Update branch name from response
+            branchName = data['branch_name'];
             branchId = storedBranchId;
           });
         } else {
@@ -90,15 +81,53 @@ Future<void> _fetchBranchDetails() async {
         });
       }
     } catch (e) {
-      print("Network Error: $e");
       setState(() {
         branchName = "Network error, please check your connection.";
       });
     }
   }
 
- Widget _buildContent() {
-  switch (selectedSection) {
+  Widget _buildContent() {
+    return Column(
+      children: [
+        // Custom App Bar
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 244, 183, 16), // Light yellow background
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Selected Section Title
+              Text(
+                selectedSection,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: _buildSelectedContent(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedContent() {
+   switch (selectedSection) {
     case 'Orders':
       return branchId != null
           ? SOrdersPage(loggedInBranchId: branchId!)
@@ -138,70 +167,97 @@ Future<void> _fetchBranchDetails() async {
     return Scaffold(
       body: Row(
         children: [
+          // Sidebar
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: isSidebarVisible ? 250 : 60,
-            color: Colors.yellow.shade700,
+            width: isSidebarVisible ? 250 : 80,
+            decoration: BoxDecoration(
+              color:  const Color.fromARGB(255, 244, 183, 16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Logo and Branch Name
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(vertical: 30.0),
                   child: Column(
                     children: [
                       const CircleAvatar(
                         radius: 40,
                         backgroundImage: AssetImage('assets/logo.png'),
                       ),
-                      const SizedBox(height: 8),
-                      isSidebarVisible
-                          ? Text(
-                              branchName,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                      const SizedBox(height: 16),
+                      if (isSidebarVisible && branchName != "Loading...")
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10.0),
+                          child: Text(
+                            branchName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
-                GestureDetector(
+                // Toggle Sidebar Button
+                ListTile(
+                  leading: const Icon(Icons.menu, color: Colors.black),
+                  title: isSidebarVisible
+                      ? const Text(
+                          'Dashboard',
+                          style: TextStyle(color: Colors.black),
+                        )
+                      : null,
                   onTap: () {
                     setState(() {
                       isSidebarVisible = !isSidebarVisible;
                     });
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      isSidebarVisible ? Icons.arrow_forward : Icons.menu,
-                      color: Colors.black,
-                    ),
-                  ),
                 ),
-                const Divider(),
+                const Divider(color: Colors.white54),
+                // Menu Items
                 Expanded(
                   child: ListView.builder(
                     itemCount: menuItems.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        leading: Icon(menuItems[index]['icon'], color: Colors.black),
+                        leading: Icon(
+                          menuItems[index]['icon'],
+                          color: selectedSection == menuItems[index]['title']
+                              ? Colors.orange[800]
+                              : Colors.black,
+                        ),
                         title: isSidebarVisible
                             ? Text(
                                 menuItems[index]['title'],
-                                style: const TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                  color: selectedSection ==
+                                          menuItems[index]['title']
+                                      ? Colors.orange[800]
+                                      : Colors.black,
+                                  fontWeight: selectedSection ==
+                                          menuItems[index]['title']
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
                               )
                             : null,
+                        tileColor: selectedSection == menuItems[index]['title']
+                            ? const Color.fromARGB(255, 232, 237, 221)
+                            : Colors.transparent,
                         onTap: () {
                           setState(() {
                             selectedSection = menuItems[index]['title'];
                           });
                         },
-                        selected: selectedSection == menuItems[index]['title'],
-                        selectedTileColor: Colors.white,
                       );
                     },
                   ),
@@ -209,16 +265,12 @@ Future<void> _fetchBranchDetails() async {
               ],
             ),
           ),
+          // Main Content
           Expanded(
             child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  if (isSidebarVisible) const Divider(color: Colors.black),
-                  Expanded(child: _buildContent()),
-                ],
-              ),
+              color: Colors.grey[100],
+              padding: const EdgeInsets.all(20.0),
+              child: _buildContent(),
             ),
           ),
         ],

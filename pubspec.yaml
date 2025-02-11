@@ -36,7 +36,21 @@ flutter:
     - assets/login1.png
     - assets/logos.png
     - assets/logo.png
-
+    - assets/signup.jpg
+    - assets/goals2.jpg
+    - assets/intro.jpg
+    - assets/intro1.jpg
+    - assets/mission4.jpg
+    - assets/obj.jpg
+    - assets/vision.jpg
+    - assets/burger.jpg
+    - assets/khana set veg.jpg
+    - assets/chowmen.jpg
+    - assets/paneer tikka.jpg
+    - assets/chicken wonton soup.jpg
+    - assets/pizza.jpg
+    - assets/butter_chicken.jpg
+    - assets/momo.jpg
 flutter_icons:
   android: true
   ios: true

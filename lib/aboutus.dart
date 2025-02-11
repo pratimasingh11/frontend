@@ -16,7 +16,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
           'About Us',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.yellow[700],
+        backgroundColor: const Color.fromARGB(255, 253, 228, 6),
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: true,
         elevation: 0,
@@ -51,7 +51,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
                   title: 'Objectives',
                   content:
                       'Develop intuitive user profiles, implement menu listings, integrate secure payment gateways, enable real-time order tracking, and facilitate inventory management for canteen administrators.',
-                  imagePath: 'assets/obje.jpg',
+                  imagePath: 'assets/obj.jpg',
                   isImageFirst: true,
                   context: context,
                 ),
@@ -105,6 +105,11 @@ class _AboutUsPageState extends State<AboutUsPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          // Added border
+          color: Colors.yellow[800]!, // Border color
+          width: 2, // Border width
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
@@ -166,6 +171,11 @@ class _AboutUsPageState extends State<AboutUsPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          // Added border
+          color: Colors.yellow[800]!, // Border color
+          width: 2, // Border width
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
@@ -188,8 +198,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 22,fontWeight: FontWeight.bold,
                     color: Colors.yellow[800],
                   ),
                 ),

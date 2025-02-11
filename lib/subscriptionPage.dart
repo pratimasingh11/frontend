@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 class SubscriptionPage extends StatefulWidget {
   final int userId; // Accept userId
 
@@ -23,7 +22,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   // Fetch the current subscription status of the user
   Future<void> _fetchUserSubscription() async {
-    final url = Uri.parse('http://10.0.2.2/minoriiproject/subscription.php?user_id=${widget.userId}');
+    final url = Uri.parse(
+        'http://10.0.2.2/minoriiproject/subscription.php?user_id=${widget.userId}');
 
     try {
       final response = await http.get(url);
@@ -35,7 +35,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           });
         } else {
           setState(() {
-            _subscribedPlanId = null;  // User is not subscribed
+            _subscribedPlanId = null; // User is not subscribed
           });
         }
       }
@@ -50,11 +50,13 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     DateTime now = DateTime.now();
     DateTime endDate = now.add(const Duration(days: 30));
 
-    bool success = await _subscribeUserToPlan(widget.userId, subscriptionId, now, endDate);
+    bool success =
+        await _subscribeUserToPlan(widget.userId, subscriptionId, now, endDate);
 
     if (success) {
       setState(() {
-        _subscribedPlanId = subscriptionId; // Update UI to show the user is subscribed
+        _subscribedPlanId =
+            subscriptionId; // Update UI to show the user is subscribed
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +80,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   // Subscribe user to a plan
-  Future<bool> _subscribeUserToPlan(int userId, int subscriptionId, DateTime startDate, DateTime endDate) async {
+  Future<bool> _subscribeUserToPlan(int userId, int subscriptionId,
+      DateTime startDate, DateTime endDate) async {
     final url = Uri.parse('http://10.0.2.2/minoriiproject/subscription.php');
 
     final Map<String, dynamic> bodyData = {
@@ -117,7 +120,11 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose Your Subscription Plan')),
+      appBar: AppBar(
+        title: const Text('Subscription Plans'),
+        backgroundColor: const Color.fromARGB(255, 253, 228, 6),
+      ),
+      backgroundColor: const Color.fromARGB(255, 238, 233, 187),
       body: ListView(
         children: [
           SubscriptionCard(
@@ -177,25 +184,86 @@ class SubscriptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(16),
-      child: ListTile(
-        title: Text(
-          planName,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          "Price: \$${price.toString()} per month\n"
-          "Meals: $mealsPerMonth meals/month\n"
-          "Sweets: $sweets\nDrinks: $drinks"
-        ),
-        trailing: ElevatedButton(
-          onPressed: isSubscribed ? null : onSubscribe, // Disable if already subscribed
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isSubscribed ? Colors.grey : Colors.yellow,
+      elevation: 5, // Add some elevation for a shadow effect
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), // Rounded corners
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16), // Add padding inside the container
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            // Add border here
+            color: Colors.orange, // Border color
+            width: 2, // Border width
           ),
-          child: Text(
-            isSubscribed ? 'Already Subscribed' : 'Subscribe',
-            style: const TextStyle(color: Colors.black),
-          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              planName,
+              style: const TextStyle(
+                fontSize: 24, // Increased font size
+                fontWeight: FontWeight.bold,
+                color: Colors.orange,
+              ),
+            ),
+            const SizedBox(height: 10), // Add vertical space
+            Text(
+              "Price: \$${price.toString()} per month",
+              style: const TextStyle(
+                fontSize: 18, // Increased font size
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8), // Add vertical space
+            Text(
+              "Meals: $mealsPerMonth meals/month",
+              style: const TextStyle(
+                fontSize: 18, // Increased font size
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8), // Add vertical space
+            Text(
+              "Sweets: $sweets",
+              style: const TextStyle(
+                fontSize: 18, // Increased font size
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8), // Add vertical space
+            Text(
+              "Drinks: $drinks",
+              style: const TextStyle(
+                fontSize: 18, // Increased fontsize
+                color: Colors.black,
+              ),
+            ),
+            // const SizedBox(height: 5), // Add vertical space
+            Center(
+              child: ElevatedButton(
+                onPressed: isSubscribed ? null : onSubscribe,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isSubscribed ? Colors.grey : Colors.yellow,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12), // Button padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded button
+                  ),
+                ),
+                child: Text(
+                  isSubscribed ? 'Already Subscribed' : 'Subscribe',
+                  style: const TextStyle(
+                    fontSize: 18, // Increased font size
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
